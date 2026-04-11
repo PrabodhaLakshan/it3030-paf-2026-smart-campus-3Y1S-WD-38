@@ -31,8 +31,27 @@ public class TicketService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with id: " + id));
     }
 
-    public IncidentTicket updateTicketStatus(String id, TicketStatus status, String notes, String techId) {
+    public IncidentTicket updateTicketStatus(String id, TicketStatus status, String notes, String techId, String userId) {
         IncidentTicket ticket = getTicketById(id);
+
+        if (status == TicketStatus.REJECTED) {
+            if (techId == null || techId.isBlank()) {
+                throw new IllegalArgumentException("Technician id is required to reject a ticket.");
+            }
+            if (notes == null || notes.isBlank()) {
+                throw new IllegalArgumentException("Rejection reason is required when rejecting a ticket.");
+            }
+        }
+
+        if (status == TicketStatus.RESOLVED) {
+            if (userId == null || userId.isBlank()) {
+                throw new IllegalArgumentException("User id is required to close a ticket.");
+            }
+            if (ticket.getReportedByUserId() == null || !ticket.getReportedByUserId().equals(userId)) {
+                throw new IllegalArgumentException("Only the user who created the ticket can close it.");
+            }
+        }
+
         ticket.setStatus(status);
         
         if (techId != null) ticket.setAssignedTechnicianId(techId);

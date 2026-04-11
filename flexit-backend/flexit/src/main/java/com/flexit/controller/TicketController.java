@@ -50,8 +50,9 @@ public class TicketController {
             @PathVariable String id,
             @RequestParam TicketStatus status,
             @RequestParam(required = false) String notes,
-            @RequestParam(required = false) String techId) {
-        return ResponseEntity.ok(ticketService.updateTicketStatus(id, status, notes, techId));
+            @RequestParam(required = false) String techId,
+            @RequestParam(required = false) String userId) {
+        return ResponseEntity.ok(ticketService.updateTicketStatus(id, status, notes, techId, userId));
     }
 
     @PostMapping("/{id}/comments")
