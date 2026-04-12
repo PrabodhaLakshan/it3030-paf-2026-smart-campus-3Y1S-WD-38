@@ -126,11 +126,11 @@ public class Resource {
         this.description = description;
     }
 
-    public String getResourceCode1() {
+    public String getResourceCode() {
         return resourceCode;
     }
 
-    public void setResourceCode1(String resourceCode) {
+    public void setResourceCode(String resourceCode) {
         this.resourceCode = resourceCode;
     }
 }

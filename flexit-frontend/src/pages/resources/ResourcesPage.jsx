@@ -26,8 +26,9 @@ function ResourcesPage() {
     }
   };
 
-  const filteredResources = resources.filter(resource => 
-    resource.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredResources = resources.filter(resource =>
+    resource.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (resource.resourceCode && resource.resourceCode.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -52,7 +53,7 @@ function ResourcesPage() {
             </div>
             <input
               type="text"
-              placeholder="Search by resource name..."
+              placeholder="Search by name or item no..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 pr-4 py-2 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61CE70] focus:border-transparent text-sm transition-all shadow-sm"
@@ -67,6 +68,7 @@ function ResourcesPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500 font-semibold">
+                <th className="px-6 py-4">Item NO</th>
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">Type</th>
                 <th className="px-6 py-4 text-center">Capacity</th>
@@ -78,13 +80,16 @@ function ResourcesPage() {
             <tbody className="divide-y divide-gray-100">
               {filteredResources.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                     {searchQuery ? "No resources found matching your search." : "No resources found. Click 'Add Resource' to create one."}
                   </td>
                 </tr>
               ) : (
                 filteredResources.map((resource) => (
                   <tr key={resource.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap font-medium text-[#0a192f]">
+                      {resource.resourceCode || 'N/A'}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900">{resource.name}</div>
                     </td>

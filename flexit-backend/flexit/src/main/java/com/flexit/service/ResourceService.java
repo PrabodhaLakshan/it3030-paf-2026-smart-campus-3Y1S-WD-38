@@ -7,7 +7,6 @@ import com.flexit.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ResourceService {
@@ -19,6 +18,7 @@ public class ResourceService {
     }
 
     public Resource createResource(Resource resource) {
+        resource.setResourceCode(generateResourceCode(resource.getType()));
         return resourceRepository.save(resource);
     }
 
@@ -33,6 +33,10 @@ public class ResourceService {
 
     public Resource updateResource(String id, Resource updatedResource) {
         Resource existing = getResourceById(id);
+
+        if (existing.getType() != updatedResource.getType()) {
+            existing.setResourceCode(generateResourceCode(updatedResource.getType()));
+        }
 
         existing.setName(updatedResource.getName());
         existing.setType(updatedResource.getType());
@@ -57,8 +61,24 @@ public class ResourceService {
         return resources.stream()
                 .filter(resource -> type == null || resource.getType().name().equalsIgnoreCase(type))
                 .filter(resource -> capacity == null || resource.getCapacity() >= capacity)
-                .filter(resource -> location == null || resource.getLocation().toLowerCase().contains(location.toLowerCase()))
-                .collect(Collectors.toList());
+                .filter(resource -> location == null
+                        || resource.getLocation().toLowerCase().contains(location.toLowerCase()))
+                .toList();
+    }
+
+    private String generateResourceCode(ResourceType type) {
+        String prefix = getPrefix(type);
+        int count = resourceRepository.findByType(type).size();
+        return String.format("%s-%03d", prefix, count + 1);
+    }
+
+    private String getPrefix(ResourceType type) {
+        return switch (type) {
+            case LECTURE_HALL -> "LH";
+            case LAB -> "LAB";
+            case MEETING_ROOM -> "MR";
+            case PROJECTOR -> "PR";
+            case CAMERA -> "CAM";
+        };
     }
 }
-
