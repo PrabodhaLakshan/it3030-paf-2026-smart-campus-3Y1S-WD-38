@@ -40,6 +40,11 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getBookingsByResourceId(resourceId));
     }
 
+    @GetMapping("/my/{userId}")
+    public ResponseEntity<List<Booking>> getBookingsByUserId(@PathVariable String userId) {
+    return ResponseEntity.ok(bookingService.getBookingsByUserId(userId));
+    }
+
     @PatchMapping("/{id}/approve")
     public ResponseEntity<Booking> approveBooking(@PathVariable String id) {
         return ResponseEntity.ok(bookingService.approveBooking(id));

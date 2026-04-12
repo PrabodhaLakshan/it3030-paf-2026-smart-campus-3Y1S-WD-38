@@ -38,6 +38,10 @@ public class BookingService {
         return bookingRepository.findByResourceId(resourceId);
     }
 
+    public List<Booking> getBookingsByUserId(String userId) {
+    return bookingRepository.findByUserId(userId);
+    }
+
     public Booking approveBooking(String id) {
         Booking booking = getBookingById(id);
         booking.setStatus(BookingStatus.APPROVED);
