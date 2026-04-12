@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 function ResourcesPage() {
   const [resources, setResources] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const loadResources = async () => {
     try {
@@ -25,21 +26,39 @@ function ResourcesPage() {
     }
   };
 
+  const filteredResources = resources.filter(resource => 
+    resource.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="max-w-7xl mx-auto h-full flex flex-col">
       {/* Page Header */}
-      <div className="flex justify-between items-center mb-6 flex-shrink-0">
+      <div className="flex justify-between items-start mb-6 flex-shrink-0 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Resource Management</h1>
           <p className="text-sm text-gray-500 mt-1">Manage all available resources across branches.</p>
         </div>
-        <Link 
-          to="/admin/resources/create" 
-          className="px-4 py-2 bg-[#0a192f] text-white font-semibold rounded-lg hover:bg-[#61CE70] hover:text-[#0a192f] shadow-md transition-all active:scale-95 flex items-center gap-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Add Resource
-        </Link>
+        <div className="flex flex-col items-end gap-3">
+          <Link 
+            to="/admin/resources/create" 
+            className="px-4 py-2 bg-[#0a192f] text-white font-semibold rounded-lg hover:bg-[#61CE70] hover:text-[#0a192f] shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 w-full sm:w-auto"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Add Resource
+          </Link>
+          <div className="relative w-full sm:w-64">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search by resource name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#61CE70] focus:border-transparent text-sm transition-all shadow-sm"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Table Container */}
@@ -57,14 +76,14 @@ function ResourcesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {resources.length === 0 ? (
+              {filteredResources.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
-                    No resources found. Click 'Add Resource' to create one.
+                    {searchQuery ? "No resources found matching your search." : "No resources found. Click 'Add Resource' to create one."}
                   </td>
                 </tr>
               ) : (
-                resources.map((resource) => (
+                filteredResources.map((resource) => (
                   <tr key={resource.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900">{resource.name}</div>
