@@ -18,6 +18,7 @@ public class Booking {
     private LocalDateTime endTime;
 
     private BookingStatus status;
+    private String rejectionReason; //Reject booking with reason
 
     public Booking() {}
 
@@ -50,4 +51,13 @@ public class Booking {
     public BookingStatus getStatus() { return status; }
 
     public void setStatus(BookingStatus status) { this.status = status; }
+
+    //Reject booking with reason
+    public String getRejectionReason() {
+    return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
+    }
 }

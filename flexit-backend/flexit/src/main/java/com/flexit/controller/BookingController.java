@@ -51,9 +51,14 @@ public class BookingController {
     }
 
     @PatchMapping("/{id}/reject")
-    public ResponseEntity<Booking> rejectBooking(@PathVariable String id) {
-        return ResponseEntity.ok(bookingService.rejectBooking(id));
-    }
+    public ResponseEntity<Booking> rejectBooking(
+        @PathVariable String id,
+        @RequestBody String reason) {
+
+    return ResponseEntity.ok(
+            bookingService.rejectBooking(id, reason)
+    );
+}
 
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<Booking> cancelBooking(@PathVariable String id) {

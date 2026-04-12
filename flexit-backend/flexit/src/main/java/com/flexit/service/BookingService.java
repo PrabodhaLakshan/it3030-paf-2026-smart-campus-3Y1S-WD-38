@@ -48,11 +48,12 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    public Booking rejectBooking(String id) {
-        Booking booking = getBookingById(id);
-        booking.setStatus(BookingStatus.REJECTED);
-        return bookingRepository.save(booking);
-    }
+    public Booking rejectBooking(String id, String reason) {
+    Booking booking = getBookingById(id);
+    booking.setStatus(BookingStatus.REJECTED);
+    booking.setRejectionReason(reason);
+    return bookingRepository.save(booking);
+}
 
     public Booking cancelBooking(String id) {
         Booking booking = getBookingById(id);
