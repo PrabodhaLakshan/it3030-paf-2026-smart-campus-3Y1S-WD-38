@@ -1,5 +1,8 @@
 package com.flexit.model;
 
-public class BookingStatus {
-    
+public enum BookingStatus {
+    PENDING,
+    APPROVED,
+    REJECTED,
+    CANCELLED
 }
