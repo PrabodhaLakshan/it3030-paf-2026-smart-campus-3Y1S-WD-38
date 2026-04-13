@@ -20,6 +20,9 @@ public class Booking {
     private BookingStatus status;
     private String rejectionReason; //Reject booking with reason
 
+    private String purpose;
+    private Integer expectedAttendees;
+
     public Booking() {}
 
     public Booking(String userId, String resourceId, LocalDateTime startTime, LocalDateTime endTime, BookingStatus status) {
@@ -59,5 +62,20 @@ public class Booking {
 
     public void setRejectionReason(String rejectionReason) {
         this.rejectionReason = rejectionReason;
+    }
+    public String getPurpose() {
+    return purpose;
+    }
+
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
+    }
+
+    public Integer getExpectedAttendees() {
+        return expectedAttendees;
+    }
+
+    public void setExpectedAttendees(Integer expectedAttendees) {
+        this.expectedAttendees = expectedAttendees;
     }
 }
