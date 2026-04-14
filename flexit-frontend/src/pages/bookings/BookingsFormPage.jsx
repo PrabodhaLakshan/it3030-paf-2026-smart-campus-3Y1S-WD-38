@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   CalendarDays,
   Clock3,
@@ -12,6 +13,7 @@ import {
 import { createBooking } from "../../api/bookingApi";
 
 function BookingsFormPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     userId: "",
     resourceId: "",
@@ -54,6 +56,16 @@ function BookingsFormPage() {
 
     return () => clearTimeout(timer);
   }, [alert.show]);
+
+  useEffect(() => {
+    if (!alert.show || alert.type !== "success") return;
+
+    const redirectTimer = setTimeout(() => {
+      navigate("/user/dashboard");
+    }, 1800);
+
+    return () => clearTimeout(redirectTimer);
+  }, [alert.show, alert.type, navigate]);
 
   const getMinDateTime = () => {
     const now = new Date();
