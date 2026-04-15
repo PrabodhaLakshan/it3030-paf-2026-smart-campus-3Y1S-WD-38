@@ -1,0 +1,95 @@
+const BASE_URL = "http://localhost:8080/api/tickets";
+
+async function request(url, options = {}) {
+  const response = await fetch(url, options);
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  const payload = contentType.includes("application/json")
+    ? await response.json().catch(() => null)
+    : await response.text().catch(() => "");
+
+  if (!response.ok) {
+    const message =
+      typeof payload === "string"
+        ? payload || "Ticket request failed."
+        : payload?.message || payload?.error || "Ticket request failed.";
+    throw new Error(message);
+  }
+
+  return payload;
+}
+
+function buildOptions(method, body) {
+  const headers = {};
+
+  if (!(body instanceof FormData) && body !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  return {
+    method,
+    headers,
+    body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
+  };
+}
+
+export function getAllTickets() {
+  return request(BASE_URL);
+}
+
+export function getTicketById(id) {
+  return request(`${BASE_URL}/${id}`);
+}
+
+export function createTicket(data) {
+  return request(BASE_URL, buildOptions("POST", data));
+}
+
+export function createTicketWithFiles(ticket, files = []) {
+  const formData = new FormData();
+  formData.append("ticket", new Blob([JSON.stringify(ticket)], { type: "application/json" }));
+
+  files.forEach((file) => {
+    formData.append("files", file);
+  });
+
+  return request(`${BASE_URL}/with-files`, buildOptions("POST", formData));
+}
+
+export function updateTicketStatus(id, { status, notes, techId, userId }) {
+  const params = new URLSearchParams();
+
+  if (status) params.set("status", status);
+  if (notes) params.set("notes", notes);
+  if (techId) params.set("techId", techId);
+  if (userId) params.set("userId", userId);
+
+  return request(`${BASE_URL}/${id}/status?${params.toString()}`, buildOptions("PATCH"));
+}
+
+export function addComment(ticketId, comment) {
+  return request(`${BASE_URL}/${ticketId}/comments`, buildOptions("POST", comment));
+}
+
+export function deleteComment(ticketId, commentId, userId) {
+  const params = new URLSearchParams();
+
+  if (userId) params.set("userId", userId);
+
+  return request(
+    `${BASE_URL}/${ticketId}/comments/${commentId}?${params.toString()}`,
+    buildOptions("DELETE")
+  );
+}
+
+export function assignTechnician(id, techId) {
+  const params = new URLSearchParams();
+
+  if (techId) params.set("techId", techId);
+
+  return request(`${BASE_URL}/${id}/assign?${params.toString()}`, buildOptions("POST"));
+}
