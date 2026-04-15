@@ -1,13 +1,38 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-function createInitialValues(initialData) {
+const assetFacilityOptions = [
+  "Laptop",
+  "Desktop",
+  "Printer",
+  "Scanner",
+  "Router",
+  "Switch",
+  "Server Room",
+  "Office Facility",
+  "Air Conditioner",
+  "Meeting Room",
+];
+
+const categoryOptions = [
+  "Hardware",
+  "Software",
+  "Network",
+  "Facility",
+  "Security",
+  "Access",
+  "Other",
+];
+
+function createInitialValues(initialData, reporterDefaults) {
   return {
-    title: initialData?.title || "",
+    assetFacility: initialData?.assetFacility || "Laptop",
+    category: initialData?.category || "Hardware",
     description: initialData?.description || "",
     priority: initialData?.priority || "MEDIUM",
-    reportedByUserId: initialData?.reportedByUserId || "",
-    reportedByUserName: initialData?.reportedByUserName || "",
+    reportedByUserId: initialData?.reportedByUserId || reporterDefaults?.reportedByUserId || "",
+    reportedByUserName: initialData?.reportedByUserName || reporterDefaults?.reportedByUserName || "",
     attachmentUrls: Array.isArray(initialData?.attachmentUrls) ? initialData.attachmentUrls : [],
+    title: initialData?.title || "",
   };
 }
 
@@ -18,15 +43,46 @@ function TicketForm({
   submitLabel = "Save Ticket",
   onSubmit,
   onSuccess,
+  currentUserId = "",
+  currentUserName = "",
+  showReporterFields = true,
+  allowAttachmentUpload = true,
 }) {
-  const [formData, setFormData] = useState(createInitialValues(initialData));
+  const [formData, setFormData] = useState(
+    createInitialValues(initialData, {
+      reportedByUserId: currentUserId,
+      reportedByUserName: currentUserName,
+    })
+  );
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [selectedAttachmentPreviews, setSelectedAttachmentPreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const shouldShowReporterFields = showReporterFields || !currentUserId;
+
+  const generatedTitle = useMemo(() => {
+    const parts = [formData.assetFacility, formData.category].filter((value) => value && value.trim());
+    return parts.length ? parts.join(" - ") : "Incident Ticket";
+  }, [formData.assetFacility, formData.category]);
+
   useEffect(() => {
-    setFormData(createInitialValues(initialData));
-  }, [initialData]);
+    setFormData(
+      createInitialValues(initialData, {
+        reportedByUserId: currentUserId,
+        reportedByUserName: currentUserName,
+      })
+    );
+    setSelectedFiles([]);
+    setSelectedAttachmentPreviews([]);
+  }, [initialData, currentUserId, currentUserName]);
+
+  useEffect(() => {
+    return () => {
+      selectedAttachmentPreviews.forEach((previewUrl) => URL.revokeObjectURL(previewUrl));
+    };
+  }, [selectedAttachmentPreviews]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -38,6 +94,10 @@ function TicketForm({
   };
 
   const handleAttachmentChange = async (event) => {
+    if (!allowAttachmentUpload) {
+      return;
+    }
+
     const files = Array.from(event.target.files || []);
 
     if (files.length > 3) {
@@ -55,21 +115,18 @@ function TicketForm({
 
     setError("");
 
-    const imageDataUrls = await Promise.all(
-      files.map(
-        (file) =>
-          new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = () => reject(new Error("Unable to read image file."));
-            reader.readAsDataURL(file);
-          })
-      )
-    );
+    const previewUrls = files.map((file) => URL.createObjectURL(file));
+
+    setSelectedAttachmentPreviews((previous) => {
+      previous.forEach((previewUrl) => URL.revokeObjectURL(previewUrl));
+      return previewUrls;
+    });
+
+    setSelectedFiles(files);
 
     setFormData((previous) => ({
       ...previous,
-      attachmentUrls: imageDataUrls,
+      attachmentUrls: previewUrls,
     }));
   };
 
@@ -81,15 +138,17 @@ function TicketForm({
 
     try {
       const payload = {
-        title: formData.title.trim(),
+        title: generatedTitle,
+        assetFacility: formData.assetFacility,
+        category: formData.category,
         description: formData.description.trim(),
         priority: formData.priority,
         reportedByUserId: formData.reportedByUserId.trim(),
         reportedByUserName: formData.reportedByUserName.trim(),
-        attachmentUrls: formData.attachmentUrls.slice(0, 3),
+        attachmentUrls: allowAttachmentUpload ? [] : formData.attachmentUrls.slice(0, 3),
       };
 
-      const savedTicket = await onSubmit(payload);
+      const savedTicket = await onSubmit(payload, selectedFiles.slice(0, 3));
       setSuccess("Ticket saved successfully.");
 
       if (onSuccess) {
@@ -125,16 +184,40 @@ function TicketForm({
           ) : null}
 
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-medium text-slate-700">Title</label>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Asset / Facility</label>
               <input
-                name="title"
-                value={formData.title}
+                list="asset-facility-options"
+                name="assetFacility"
+                value={formData.assetFacility}
                 onChange={handleChange}
                 required
-                placeholder="Short summary of the issue"
+                placeholder="Select or type asset/facility"
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-[#61CE70] focus:bg-white focus:ring-4 focus:ring-[#61CE70]/15"
               />
+              <datalist id="asset-facility-options">
+                {assetFacilityOptions.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Category</label>
+              <input
+                list="category-options"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                required
+                placeholder="Select or type category"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-[#61CE70] focus:bg-white focus:ring-4 focus:ring-[#61CE70]/15"
+              />
+              <datalist id="category-options">
+                {categoryOptions.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
             </div>
 
             <div>
@@ -148,30 +231,7 @@ function TicketForm({
                 <option value="LOW">LOW</option>
                 <option value="MEDIUM">MEDIUM</option>
                 <option value="HIGH">HIGH</option>
-                <option value="URGENT">URGENT</option>
               </select>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Reported by user ID</label>
-              <input
-                name="reportedByUserId"
-                value={formData.reportedByUserId}
-                onChange={handleChange}
-                placeholder="User identifier"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-[#61CE70] focus:bg-white focus:ring-4 focus:ring-[#61CE70]/15"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-medium text-slate-700">Reported by name</label>
-              <input
-                name="reportedByUserName"
-                value={formData.reportedByUserName}
-                onChange={handleChange}
-                placeholder="Display name"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-[#61CE70] focus:bg-white focus:ring-4 focus:ring-[#61CE70]/15"
-              />
             </div>
 
             <div className="md:col-span-2">
@@ -186,16 +246,58 @@ function TicketForm({
               />
             </div>
 
+            {shouldShowReporterFields ? (
+              <>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Reported by user ID</label>
+                  <input
+                    name="reportedByUserId"
+                    value={formData.reportedByUserId}
+                    onChange={handleChange}
+                    placeholder="User identifier"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-[#61CE70] focus:bg-white focus:ring-4 focus:ring-[#61CE70]/15"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Reported by name</label>
+                  <input
+                    name="reportedByUserName"
+                    value={formData.reportedByUserName}
+                    onChange={handleChange}
+                    placeholder="Display name"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-[#61CE70] focus:bg-white focus:ring-4 focus:ring-[#61CE70]/15"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                <p className="font-semibold text-slate-900">Submitting as</p>
+                <p className="mt-1">{currentUserName || "Unknown user"}</p>
+                <p className="text-xs text-slate-500">{currentUserId || "No user ID"}</p>
+              </div>
+            )}
+
             <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-medium text-slate-700">Attachments</label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleAttachmentChange}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition file:mr-4 file:rounded-xl file:border-0 file:bg-[#0a192f] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:bg-white focus:border-[#61CE70] focus:bg-white focus:ring-4 focus:ring-[#61CE70]/15"
-              />
-              <p className="mt-2 text-xs text-slate-500">Attach up to 3 images only. Selected images are stored with the ticket.</p>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <label className="block text-sm font-medium text-slate-700">Attachments</label>
+                <span className="text-xs text-slate-500">Up to 3 images</span>
+              </div>
+
+              {allowAttachmentUpload ? (
+                <>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleAttachmentChange}
+                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition file:mr-4 file:rounded-xl file:border-0 file:bg-[#0a192f] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:bg-white focus:border-[#61CE70] focus:bg-white focus:ring-4 focus:ring-[#61CE70]/15"
+                  />
+                  <p className="mt-2 text-xs text-slate-500">Attach up to 3 images only. Selected images are sent with the ticket as multipart data.</p>
+                </>
+              ) : (
+                <p className="mt-2 text-xs text-slate-500">Attachments are not editable in this view.</p>
+              )}
 
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {(formData.attachmentUrls || []).map((imageUrl, index) => (

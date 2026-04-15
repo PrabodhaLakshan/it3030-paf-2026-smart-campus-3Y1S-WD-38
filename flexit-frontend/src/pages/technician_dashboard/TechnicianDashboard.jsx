@@ -176,7 +176,7 @@ function TechnicianDashboard() {
                     <h2 className="mt-1 text-xl font-semibold text-slate-900">{ticket.title}</h2>
                     <p className="mt-2 text-sm text-slate-600">{ticket.description || "No description provided."}</p>
 
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                       <div className="rounded-xl bg-slate-50 p-3">
                         <p className="text-xs text-slate-500">Current Status</p>
                         <p className="mt-1 text-sm font-semibold text-slate-900">{ticket.status || "OPEN"}</p>
@@ -188,6 +188,38 @@ function TechnicianDashboard() {
                       <div className="rounded-xl bg-slate-50 p-3">
                         <p className="text-xs text-slate-500">Reporter</p>
                         <p className="mt-1 text-sm font-semibold text-slate-900">{ticket.reportedByUserName || ticket.reportedByUserId || "Unknown"}</p>
+                      </div>
+                      <div className="rounded-xl bg-slate-50 p-3">
+                        <p className="text-xs text-slate-500">Asset / Facility</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-900">{ticket.assetFacility || "N/A"}</p>
+                      </div>
+                      <div className="rounded-xl bg-slate-50 p-3">
+                        <p className="text-xs text-slate-500">Category</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-900">{ticket.category || "N/A"}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Attachments</p>
+                      <div className="mt-3 flex flex-wrap gap-3">
+                        {ticket.attachmentUrls?.length ? (
+                          ticket.attachmentUrls.slice(0, 3).map((attachmentUrl, index) => (
+                            <Link
+                              key={`${ticket.id}-attachment-${index}`}
+                              to={`/technician/tickets/${ticket.id}`}
+                              className="block h-16 w-16 overflow-hidden rounded-xl border border-slate-200 bg-white"
+                              title="Open ticket details to preview images"
+                            >
+                              <img
+                                src={attachmentUrl}
+                                alt={`Ticket ${ticket.id} attachment ${index + 1}`}
+                                className="h-full w-full object-cover"
+                              />
+                            </Link>
+                          ))
+                        ) : (
+                          <p className="text-sm text-slate-500">No images were added.</p>
+                        )}
                       </div>
                     </div>
 

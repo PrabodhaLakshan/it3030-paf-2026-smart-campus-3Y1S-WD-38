@@ -1,5 +1,44 @@
 const BASE_URL = "http://localhost:8080/api/tickets";
 
+function normalizeAttachmentUrls(ticket) {
+  const candidates = [
+    ticket?.attachmentUrls,
+    ticket?.imageUrls,
+    ticket?.images,
+    ticket?.attachments,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate;
+    }
+  }
+
+  return [];
+}
+
+function normalizeTicket(ticket) {
+  if (!ticket || typeof ticket !== "object") {
+    return ticket;
+  }
+
+  return {
+    ...ticket,
+    assetFacility:
+      ticket.assetFacility ?? ticket.asset_facility ?? ticket.assetFacilityName ?? ticket.asset ?? "",
+    category: ticket.category ?? ticket.ticketCategory ?? ticket.issueCategory ?? "",
+    attachmentUrls: normalizeAttachmentUrls(ticket),
+  };
+}
+
+function normalizeTicketList(payload) {
+  if (!Array.isArray(payload)) {
+    return normalizeTicket(payload);
+  }
+
+  return payload.map((ticket) => normalizeTicket(ticket));
+}
+
 async function request(url, options = {}) {
   const response = await fetch(url, options);
 
@@ -20,7 +59,7 @@ async function request(url, options = {}) {
     throw new Error(message);
   }
 
-  return payload;
+  return normalizeTicketList(payload);
 }
 
 function buildOptions(method, body) {
@@ -93,6 +132,17 @@ export function updateTicketStatus(id, { status, notes, techId, userId }) {
 
 export function addComment(ticketId, comment) {
   return request(`${BASE_URL}/${ticketId}/comments`, buildOptions("POST", comment));
+}
+
+export function updateComment(ticketId, commentId, comment, userId) {
+  const params = new URLSearchParams();
+
+  if (userId) params.set("userId", userId);
+
+  return request(
+    `${BASE_URL}/${ticketId}/comments/${commentId}?${params.toString()}`,
+    buildOptions("PUT", comment)
+  );
 }
 
 export function deleteComment(ticketId, commentId, userId) {

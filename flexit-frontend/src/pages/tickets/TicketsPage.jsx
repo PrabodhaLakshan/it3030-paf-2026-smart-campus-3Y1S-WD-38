@@ -576,6 +576,8 @@ function TicketsPage() {
                   <th className="px-4 py-3 font-semibold">Ticket</th>
                   <th className="px-4 py-3 font-semibold">Reporter</th>
                   <th className="px-4 py-3 font-semibold">Attachments</th>
+                  <th className="px-4 py-3 font-semibold">Asset / Facility</th>
+                  <th className="px-4 py-3 font-semibold">Category</th>
                   <th className="px-4 py-3 font-semibold">Priority</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold">Assigned</th>
@@ -617,6 +619,12 @@ function TicketsPage() {
                       ) : (
                         <p className="text-xs text-slate-500">No images</p>
                       )}
+                    </td>
+                    <td className="px-4 py-4 text-slate-800">
+                      {ticket.assetFacility || "N/A"}
+                    </td>
+                    <td className="px-4 py-4 text-slate-800">
+                      {ticket.category || "N/A"}
                     </td>
                     <td className="px-4 py-4 font-medium text-slate-800">{ticket.priority || "MEDIUM"}</td>
                     <td className="px-4 py-4 font-medium text-slate-800">{ticket.status || "OPEN"}</td>

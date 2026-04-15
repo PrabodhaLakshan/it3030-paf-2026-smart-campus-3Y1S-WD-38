@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Outlet, Routes, Route } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
+import UserLayout from "../layouts/UserLayout";
 import TechnicianLayout from "../layouts/TechnicianLayout";
 import AdminDashboard from "../pages/admin_dashboard/admin_dashboard";
 import ResourcesPage from "../pages/resources/ResourcesPage";
@@ -11,6 +12,7 @@ import CreateTicketPage from "../pages/tickets/CreateTicketPage";
 import PublicCreateTicketPage from "../pages/tickets/PublicCreateTicketPage";
 import TicketDetailsPage from "../pages/tickets/TicketDetailsPage";
 import EditTicketPage from "../pages/tickets/EditTicketPage";
+import UserDashboard from "../pages/user_dashboard/UserDashboard";
 import TechnicianDashboard from "../pages/technician_dashboard/TechnicianDashboard";
 import LoginPage from "../pages/auth/LoginPage";
 import { getSessionUser, isAuthenticated } from "../utils/sessionUser";
@@ -52,6 +54,14 @@ function AppRoutes() {
         <Route path="/" element={landingPage} />
 
         <Route element={<RequireAuth />}>
+          <Route element={<RequireRole role="USER" />}>
+            <Route element={<UserLayout />}>
+              <Route path="/user/dashboard" element={<UserDashboard />} />
+              <Route path="/user/tickets/create" element={<CreateTicketPage />} />
+              <Route path="/user/tickets/:id" element={<TicketDetailsPage />} />
+            </Route>
+          </Route>
+
           <Route element={<RequireRole role="TECHNICIAN" />}>
             <Route element={<TechnicianLayout />}>
               <Route path="/technician/dashboard" element={<TechnicianDashboard />} />

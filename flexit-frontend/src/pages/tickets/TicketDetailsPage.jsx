@@ -36,13 +36,17 @@ function TicketDetailsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
+  const isUserRoute = location.pathname.startsWith("/user");
   const isTechnicianRoute = location.pathname.startsWith("/technician");
   const basePath = isAdminRoute
     ? "/admin/tickets"
+    : isUserRoute
+      ? "/user/tickets"
     : isTechnicianRoute
       ? "/technician/tickets"
       : "/tickets";
-  const backPath = isTechnicianRoute ? "/technician/dashboard" : basePath;
+  const backPath = isTechnicianRoute ? "/technician/dashboard" : isUserRoute ? "/user/dashboard" : basePath;
+  const canManageStatus = isAdminRoute || isTechnicianRoute;
 
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -219,7 +223,7 @@ function TicketDetailsPage() {
       {previewImageUrl ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4">
           <div className="absolute inset-0" onClick={closeImagePreview} />
-          <div className="relative z-10 h-[760px] w-[1180px] max-h-[92vh] max-w-[96vw] rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl">
+          <div className="relative z-10 h-190 w-295 max-h-[92vh] max-w-[96vw] rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-semibold text-slate-200">Image Preview</p>
               <div className="flex flex-wrap items-center gap-2">
@@ -269,7 +273,7 @@ function TicketDetailsPage() {
               <img
                 src={previewImageUrl}
                 alt="Ticket attachment preview"
-                className="mx-auto h-[660px] w-[1040px] max-h-[78vh] max-w-full origin-center select-none object-contain"
+                className="mx-auto h-165 w-260 max-h-[78vh] max-w-full origin-center select-none object-contain"
                 style={{
                   transform: isTechnicianRoute
                     ? `perspective(1200px) rotateX(${previewTilt.x}deg) rotateY(${previewTilt.y}deg) scale(${previewZoom})`
@@ -330,12 +334,14 @@ function TicketDetailsPage() {
             >
               Back
             </Link>
-            <Link
-              to={`${basePath}/edit/${ticket.id}`}
-              className="rounded-2xl bg-[#0a192f] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#61CE70] hover:text-[#0a192f]"
-            >
-              Update Status
-            </Link>
+            {canManageStatus ? (
+              <Link
+                to={`${basePath}/edit/${ticket.id}`}
+                className="rounded-2xl bg-[#0a192f] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#61CE70] hover:text-[#0a192f]"
+              >
+                Update Status
+              </Link>
+            ) : null}
           </div>
         </div>
 
@@ -355,6 +361,14 @@ function TicketDetailsPage() {
           <div className="rounded-2xl bg-slate-50 p-4">
             <p className="text-sm text-slate-500">Comment count</p>
             <p className="mt-1 font-semibold text-slate-900">{ticket.comments?.length || 0}</p>
+          </div>
+          <div className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-sm text-slate-500">Asset / Facility</p>
+            <p className="mt-1 font-semibold text-slate-900">{ticket.assetFacility || "N/A"}</p>
+          </div>
+          <div className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-sm text-slate-500">Category</p>
+            <p className="mt-1 font-semibold text-slate-900">{ticket.category || "N/A"}</p>
           </div>
         </div>
 
@@ -385,24 +399,24 @@ function TicketDetailsPage() {
               )}
             </div>
           </div>
+        </div>
 
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Resolution</h2>
-            <div className="mt-4 space-y-4 text-sm text-slate-700">
-              <div>
-                <p className="font-medium text-slate-500">Resolution notes</p>
-                <p className="mt-1 whitespace-pre-wrap">{ticket.resolutionNotes || "No resolution notes yet."}</p>
-              </div>
-              <div>
-                <p className="font-medium text-slate-500">Rejection reason</p>
-                <p className="mt-1 whitespace-pre-wrap">{ticket.rejectionReason || "No rejection reason yet."}</p>
-              </div>
+        <CommentSection ticketId={ticket.id} comments={ticket.comments || []} onRefresh={loadTicket} />
+
+        <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Resolution</h2>
+          <div className="mt-4 space-y-4 text-sm text-slate-700">
+            <div>
+              <p className="font-medium text-slate-500">Resolution notes</p>
+              <p className="mt-1 whitespace-pre-wrap">{ticket.resolutionNotes || "No resolution notes yet."}</p>
+            </div>
+            <div>
+              <p className="font-medium text-slate-500">Rejection reason</p>
+              <p className="mt-1 whitespace-pre-wrap">{ticket.rejectionReason || "No rejection reason yet."}</p>
             </div>
           </div>
         </div>
       </div>
-
-      <CommentSection ticketId={ticket.id} comments={ticket.comments || []} onRefresh={loadTicket} />
     </section>
   );
 }

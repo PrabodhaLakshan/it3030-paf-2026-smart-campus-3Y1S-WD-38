@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { createTicket, deleteTicket } from "../../api/ticketApi";
+import { createTicketWithFiles, deleteTicket } from "../../api/ticketApi";
 import TicketForm from "../../components/tickets/TicketForm";
+import { getSessionUser } from "../../utils/sessionUser";
 
 function PublicCreateTicketPage() {
+  const sessionUser = getSessionUser();
   const [createdTicket, setCreatedTicket] = useState(null);
   const [deleteError, setDeleteError] = useState("");
   const [deleteSuccess, setDeleteSuccess] = useState("");
   const [deleting, setDeleting] = useState(false);
 
-  const handleSubmit = async (payload) => {
-    return createTicket(payload);
+  const handleSubmit = async (payload, files) => {
+    return createTicketWithFiles(payload, files);
   };
 
   const handleCreateSuccess = (savedTicket, payload) => {
@@ -65,6 +67,10 @@ function PublicCreateTicketPage() {
         submitLabel="Submit Ticket"
         onSubmit={handleSubmit}
         onSuccess={handleCreateSuccess}
+        currentUserId={sessionUser.userId}
+        currentUserName={sessionUser.userName}
+        showReporterFields={!sessionUser.userId}
+        allowAttachmentUpload
       />
 
       {deleteSuccess ? (

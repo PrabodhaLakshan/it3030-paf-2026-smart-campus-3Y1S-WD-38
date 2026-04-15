@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createTicket, deleteTicket, getAllTickets, updateTicket } from "../../api/ticketApi";
+import { createTicketWithFiles, deleteTicket, getAllTickets, updateTicket } from "../../api/ticketApi";
 import TicketForm from "../../components/tickets/TicketForm";
 import { getSessionUser } from "../../utils/sessionUser";
 
@@ -41,12 +41,13 @@ function UserDashboard() {
   const [editingTicket, setEditingTicket] = useState(null);
 
   const [draftDefaults, setDraftDefaults] = useState({
-    title: "",
+    assetFacility: "Laptop",
+    category: "Hardware",
     description: "",
     priority: "MEDIUM",
     reportedByUserId: sessionUser.userId,
     reportedByUserName: sessionUser.userName,
-    attachmentUrlsText: "",
+    attachmentUrls: [],
   });
 
   const loadTickets = async () => {
@@ -81,18 +82,20 @@ function UserDashboard() {
   useEffect(() => {
     if (!editingTicket) {
       setDraftDefaults({
-        title: "",
+        assetFacility: "Laptop",
+        category: "Hardware",
         description: "",
         priority: "MEDIUM",
         reportedByUserId: sessionUser.userId,
         reportedByUserName: sessionUser.userName,
-        attachmentUrlsText: "",
+        attachmentUrls: [],
       });
       return;
     }
 
     setDraftDefaults({
-      title: editingTicket.title || "",
+      assetFacility: editingTicket.assetFacility || "Laptop",
+      category: editingTicket.category || "Hardware",
       description: editingTicket.description || "",
       priority: editingTicket.priority || "MEDIUM",
       reportedByUserId: editingTicket.reportedByUserId || sessionUser.userId,
@@ -114,7 +117,7 @@ function UserDashboard() {
     [tickets]
   );
 
-  const handleSubmit = async (payload) => {
+  const handleSubmit = async (payload, files) => {
     const normalizedPayload = {
       ...payload,
       reportedByUserId: sessionUser.userId,
@@ -130,7 +133,7 @@ function UserDashboard() {
       return updatedTicket;
     }
 
-    const createdTicket = await createTicket(normalizedPayload);
+    const createdTicket = await createTicketWithFiles(normalizedPayload, files);
     setMessage(`Ticket ${createdTicket?.id || ""} created successfully.`.trim());
     return createdTicket;
   };
@@ -228,6 +231,10 @@ function UserDashboard() {
           submitLabel={editingTicket ? "Update Ticket" : "Create Ticket"}
           onSubmit={handleSubmit}
           onSuccess={handleFormSuccess}
+          currentUserId={sessionUser.userId}
+          currentUserName={sessionUser.userName}
+          showReporterFields={false}
+          allowAttachmentUpload={!editingTicket}
         />
 
         {editingTicket ? (
