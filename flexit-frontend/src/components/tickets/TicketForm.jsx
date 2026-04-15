@@ -7,9 +7,7 @@ function createInitialValues(initialData) {
     priority: initialData?.priority || "MEDIUM",
     reportedByUserId: initialData?.reportedByUserId || "",
     reportedByUserName: initialData?.reportedByUserName || "",
-    attachmentUrlsText: Array.isArray(initialData?.attachmentUrls)
-      ? initialData.attachmentUrls.join("\n")
-      : initialData?.attachmentUrlsText || "",
+    attachmentUrls: Array.isArray(initialData?.attachmentUrls) ? initialData.attachmentUrls : [],
   };
 }
 
@@ -39,6 +37,42 @@ function TicketForm({
     }));
   };
 
+  const handleAttachmentChange = async (event) => {
+    const files = Array.from(event.target.files || []);
+
+    if (files.length > 3) {
+      setError("You can attach a maximum of 3 images.");
+      event.target.value = "";
+      return;
+    }
+
+    const invalidFile = files.find((file) => !file.type.startsWith("image/"));
+    if (invalidFile) {
+      setError("Only image files are allowed.");
+      event.target.value = "";
+      return;
+    }
+
+    setError("");
+
+    const imageDataUrls = await Promise.all(
+      files.map(
+        (file) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error("Unable to read image file."));
+            reader.readAsDataURL(file);
+          })
+      )
+    );
+
+    setFormData((previous) => ({
+      ...previous,
+      attachmentUrls: imageDataUrls,
+    }));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -52,10 +86,7 @@ function TicketForm({
         priority: formData.priority,
         reportedByUserId: formData.reportedByUserId.trim(),
         reportedByUserName: formData.reportedByUserName.trim(),
-        attachmentUrls: formData.attachmentUrlsText
-          .split(/[\n,]/)
-          .map((url) => url.trim())
-          .filter(Boolean),
+        attachmentUrls: formData.attachmentUrls.slice(0, 3),
       };
 
       const savedTicket = await onSubmit(payload);
@@ -74,7 +105,7 @@ function TicketForm({
   return (
     <div className="mx-auto w-full max-w-4xl">
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-slate-950 via-slate-900 to-[#0a192f] px-6 py-8 text-white sm:px-10">
+        <div className="border-b border-slate-100 bg-linear-to-r from-slate-950 via-slate-900 to-[#0a192f] px-6 py-8 text-white sm:px-10">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#61CE70]">Ticket Desk</p>
           <h2 className="mt-3 text-3xl font-semibold">{heading}</h2>
           <p className="mt-2 max-w-2xl text-sm text-slate-300">{description}</p>
@@ -156,16 +187,24 @@ function TicketForm({
             </div>
 
             <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-medium text-slate-700">Attachment URLs</label>
-              <textarea
-                name="attachmentUrlsText"
-                value={formData.attachmentUrlsText}
-                onChange={handleChange}
-                rows={4}
-                placeholder="One URL per line or separated by commas"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-[#61CE70] focus:bg-white focus:ring-4 focus:ring-[#61CE70]/15"
+              <label className="mb-2 block text-sm font-medium text-slate-700">Attachments</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleAttachmentChange}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition file:mr-4 file:rounded-xl file:border-0 file:bg-[#0a192f] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:bg-white focus:border-[#61CE70] focus:bg-white focus:ring-4 focus:ring-[#61CE70]/15"
               />
-              <p className="mt-2 text-xs text-slate-500">Optional. The backend accepts up to three image URLs.</p>
+              <p className="mt-2 text-xs text-slate-500">Attach up to 3 images only. Selected images are stored with the ticket.</p>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {(formData.attachmentUrls || []).map((imageUrl, index) => (
+                  <div key={`${imageUrl.slice(0, 24)}-${index}`} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                    <img src={imageUrl} alt={`Attachment ${index + 1}`} className="h-32 w-full object-cover" />
+                    <div className="px-3 py-2 text-xs font-medium text-slate-600">Image {index + 1}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

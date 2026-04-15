@@ -5,7 +5,7 @@ import { setSessionUser } from "../../utils/sessionUser";
 function LoginPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    role: "TECHNICIAN",
+    role: "USER",
     userId: "",
     userName: "",
     password: "",
@@ -43,6 +43,11 @@ function LoginPage() {
       return;
     }
 
+    if (formData.role === "USER") {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
     navigate("/admin/dashboard", { replace: true });
   };
 
@@ -53,7 +58,7 @@ function LoginPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#61CE70]">FlexIT Access</p>
           <h1 className="mt-3 text-3xl font-semibold">Sign In</h1>
           <p className="mt-3 text-sm text-slate-300">
-            Login as technician to see only assigned tickets and update status/resolution notes.
+            Login as a user to raise and manage your tickets, or switch to technician/admin for the other dashboards.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-4">
@@ -65,6 +70,7 @@ function LoginPage() {
                 onChange={handleChange}
                 className="w-full rounded-2xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm text-slate-100 outline-none focus:border-[#61CE70]"
               >
+                  <option value="USER">USER</option>
                 <option value="TECHNICIAN">TECHNICIAN</option>
                 <option value="ADMIN">ADMIN</option>
               </select>
@@ -120,17 +126,19 @@ function LoginPage() {
         </div>
 
         <div className="rounded-3xl border border-slate-700/60 bg-slate-900/70 p-8 text-slate-200 shadow-2xl">
-          <h2 className="text-xl font-semibold">Technician Features</h2>
+          <h2 className="text-xl font-semibold">Role Features</h2>
           <ul className="mt-4 space-y-3 text-sm text-slate-300">
-            <li>See only tickets assigned to your technician ID.</li>
-            <li>Update ticket status to IN_PROGRESS or RESOLVED.</li>
-            <li>Add resolution notes while resolving tickets.</li>
+            <li>Create, edit, and delete your own incident tickets.</li>
+            <li>Track your tickets from open to resolution.</li>
             <li>Use the same app visual style with navbar and sidebar.</li>
           </ul>
 
           <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-800/60 p-4">
             <p className="text-xs uppercase tracking-[0.25em] text-slate-400">Quick Demo Login</p>
-            <p className="mt-2 text-sm text-slate-200">Role: TECHNICIAN</p>
+            <p className="mt-2 text-sm text-slate-200">Role: USER</p>
+            <p className="text-sm text-slate-200">User ID: USER001</p>
+            <p className="text-sm text-slate-200">User Name: FlexIT User</p>
+            <p className="mt-4 text-sm text-slate-200">Role: TECHNICIAN</p>
             <p className="text-sm text-slate-200">User ID: TECH001</p>
             <p className="text-sm text-slate-200">User Name: Technician One</p>
           </div>

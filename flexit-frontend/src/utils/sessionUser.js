@@ -12,11 +12,15 @@ function safeParse(value) {
 
 function normalizeRole(value) {
   const role = (value || "").toUpperCase().trim();
+  if (role === "USER") {
+    return "USER";
+  }
+
   if (role === "TECHNICIAN") {
     return "TECHNICIAN";
   }
 
-  return "ADMIN";
+  return "USER";
 }
 
 function firstNonEmpty(values) {

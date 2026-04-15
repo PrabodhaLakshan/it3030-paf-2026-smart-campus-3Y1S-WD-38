@@ -1,17 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
-import { assignTechnician, getAllTickets, updateTicketStatus } from "../../api/ticketApi";
+import { assignTechnician, getAllTickets, getTechnicians, updateTicketStatus } from "../../api/ticketApi";
 
 const statusFilters = ["ALL", "OPEN", "IN_PROGRESS", "RESOLVED", "REJECTED"];
 const priorityFilters = ["ALL", "LOW", "MEDIUM", "HIGH", "URGENT"];
-const defaultTechnicians = [
-  { id: "TECH001", name: "Technician 001" },
-  { id: "TECH002", name: "Technician 002" },
-  { id: "TECH003", name: "Technician 003" },
-  { id: "TECH004", name: "Technician 004" },
-];
+
+function extractTechniciansFromTickets(tickets) {
+  const seen = new Set();
+  const derived = [];
+
+  (Array.isArray(tickets) ? tickets : []).forEach((ticket) => {
+    const techId = (ticket.assignedTechnicianId || "").trim();
+    if (!techId || seen.has(techId)) {
+      return;
+    }
+
+    seen.add(techId);
+    const techName = (ticket.assignedTechnicianName || "").trim();
+    derived.push({ id: techId, name: techName || techId });
+  });
+
+  return derived;
+}
 
 function TicketsPage() {
   const [tickets, setTickets] = useState([]);
+  const [technicians, setTechnicians] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionMessage, setActionMessage] = useState("");
@@ -30,9 +43,27 @@ function TicketsPage() {
     setError("");
 
     try {
-      const data = await getAllTickets();
-      const nextTickets = Array.isArray(data) ? data : [];
+      const [ticketResult, technicianResult] = await Promise.allSettled([
+        getAllTickets(),
+        getTechnicians(),
+      ]);
+
+      const nextTickets =
+        ticketResult.status === "fulfilled" && Array.isArray(ticketResult.value)
+          ? ticketResult.value
+          : [];
+
       setTickets(nextTickets);
+
+      if (technicianResult.status === "fulfilled" && Array.isArray(technicianResult.value)) {
+        setTechnicians(technicianResult.value);
+      } else {
+        setTechnicians(extractTechniciansFromTickets(nextTickets));
+      }
+
+      if (ticketResult.status === "rejected") {
+        throw ticketResult.reason;
+      }
 
       // Keep selection sticky, while defaulting empty rows to currently assigned technician.
       setSelectedTechnicianByTicket((previous) => {
@@ -57,12 +88,21 @@ function TicketsPage() {
 
   const technicianOptions = useMemo(() => {
     const seen = new Set();
-    const technicians = defaultTechnicians.map((tech) => ({
-      id: tech.id,
-      label: `${tech.name} (${tech.id})`,
-    }));
+    const options = [];
 
-    defaultTechnicians.forEach((tech) => seen.add(tech.id));
+    technicians.forEach((tech) => {
+      const techId = (tech.id || "").trim();
+      if (!techId || seen.has(techId)) {
+        return;
+      }
+
+      seen.add(techId);
+      const techName = (tech.name || "").trim();
+      options.push({
+        id: techId,
+        label: techName ? `${techName} (${techId})` : techId,
+      });
+    });
 
     tickets.forEach((ticket) => {
       const techId = (ticket.assignedTechnicianId || "").trim();
@@ -71,7 +111,7 @@ function TicketsPage() {
       }
 
       seen.add(techId);
-      technicians.push({
+      options.push({
         id: techId,
         label: ticket.assignedTechnicianName
           ? `${ticket.assignedTechnicianName} (${techId})`
@@ -79,8 +119,8 @@ function TicketsPage() {
       });
     });
 
-    return technicians;
-  }, [tickets]);
+    return options;
+  }, [tickets, technicians]);
 
   const resolveTechnicianId = (ticketId) => {
     const selected = (selectedTechnicianByTicket[ticketId] || "").trim();

@@ -41,12 +41,32 @@ export function getAllTickets() {
   return request(BASE_URL);
 }
 
+export function getTechnicians() {
+  return request(`${BASE_URL}/technicians`);
+}
+
 export function getTicketById(id) {
   return request(`${BASE_URL}/${id}`);
 }
 
 export function createTicket(data) {
   return request(BASE_URL, buildOptions("POST", data));
+}
+
+export function updateTicket(id, data) {
+  const params = new URLSearchParams();
+
+  if (data?.userId) params.set("userId", data.userId);
+
+  return request(`${BASE_URL}/${id}?${params.toString()}`, buildOptions("PUT", data));
+}
+
+export function deleteTicket(id, userId) {
+  const params = new URLSearchParams();
+
+  if (userId) params.set("userId", userId);
+
+  return request(`${BASE_URL}/${id}?${params.toString()}`, buildOptions("DELETE"));
 }
 
 export function createTicketWithFiles(ticket, files = []) {
