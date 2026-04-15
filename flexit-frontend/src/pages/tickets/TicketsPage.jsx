@@ -385,7 +385,7 @@ function TicketsPage() {
       {previewImageUrl ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4">
           <div className="absolute inset-0" onClick={closeImagePreview} />
-          <div className="relative z-10 w-full max-w-6xl rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl">
+          <div className="relative z-10 h-190 w-295 max-h-[92vh] max-w-[96vw] rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-semibold text-slate-200">Image Preview</p>
               <div className="flex flex-wrap items-center gap-2">
@@ -431,7 +431,7 @@ function TicketsPage() {
               <img
                 src={previewImageUrl}
                 alt="Ticket attachment preview"
-                className="mx-auto origin-center select-none"
+                className="mx-auto h-165 w-260 max-h-[78vh] max-w-full origin-center select-none object-contain"
                 style={{
                   transform: `scale(${previewZoom})`,
                   transformOrigin: `${previewOrigin.x}% ${previewOrigin.y}%`,
