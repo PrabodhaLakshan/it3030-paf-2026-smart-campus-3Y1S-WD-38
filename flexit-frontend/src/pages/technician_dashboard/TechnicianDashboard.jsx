@@ -1,10 +1,91 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { getAllTickets, updateTicketStatus } from "../../api/ticketApi";
 import { getSessionUser } from "../../utils/sessionUser";
 
 const allowedStatuses = ["IN_PROGRESS", "RESOLVED"];
 const priorityFilters = ["ALL", "LOW", "MEDIUM", "HIGH"];
+const RESOLVED_REPORT_CACHE_KEY = "technicianResolvedReportCache";
+
+function formatDate(value) {
+  if (!value) {
+    return "N/A";
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(date);
+}
+
+function getLatestTechnicianComment(ticket, technicianId) {
+  const comments = Array.isArray(ticket.comments) ? ticket.comments : [];
+  const normalizedTechnicianId = (technicianId || "").trim();
+
+  return comments
+    .filter((comment) => {
+      const commentUserId = (comment?.userId || "").trim();
+      return normalizedTechnicianId && commentUserId === normalizedTechnicianId;
+    })
+    .slice()
+    .sort((left, right) => new Date(right.createdAt || 0) - new Date(left.createdAt || 0))[0] || null;
+}
+
+function readResolvedCache(technicianId) {
+  try {
+    const raw = window.localStorage.getItem(RESOLVED_REPORT_CACHE_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    const key = (technicianId || "").trim();
+    const cached = key ? parsed[key] : [];
+    return Array.isArray(cached) ? cached : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeResolvedCache(technicianId, tickets) {
+  try {
+    const raw = window.localStorage.getItem(RESOLVED_REPORT_CACHE_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    const key = (technicianId || "").trim();
+
+    if (!key) {
+      return;
+    }
+
+    parsed[key] = (Array.isArray(tickets) ? tickets : []).slice(0, 100);
+    window.localStorage.setItem(RESOLVED_REPORT_CACHE_KEY, JSON.stringify(parsed));
+  } catch {
+    // Ignore cache write issues and keep dashboard functional.
+  }
+}
+
+function mergeResolvedTickets(activeTickets, cachedTickets) {
+  const byId = new Map();
+
+  (Array.isArray(activeTickets) ? activeTickets : [])
+    .filter((ticket) => (ticket.status || "OPEN") === "RESOLVED")
+    .forEach((ticket) => {
+      byId.set(ticket.id, ticket);
+    });
+
+  (Array.isArray(cachedTickets) ? cachedTickets : []).forEach((ticket) => {
+    if (!ticket?.id || byId.has(ticket.id)) {
+      return;
+    }
+
+    byId.set(ticket.id, ticket);
+  });
+
+  return Array.from(byId.values()).sort(
+    (left, right) => new Date(right.resolvedAt || right.createdAt || 0) - new Date(left.resolvedAt || left.createdAt || 0)
+  );
+}
 
 function TechnicianDashboard() {
   const sessionUser = useMemo(() => getSessionUser(), []);
@@ -15,6 +96,11 @@ function TechnicianDashboard() {
   const [actionLoadingId, setActionLoadingId] = useState("");
   const [formByTicket, setFormByTicket] = useState({});
   const [priorityFilter, setPriorityFilter] = useState("ALL");
+  const [resolvedHistory, setResolvedHistory] = useState([]);
+
+  useEffect(() => {
+    setResolvedHistory(readResolvedCache(sessionUser.userId));
+  }, [sessionUser.userId]);
 
   const loadAssignedTickets = async () => {
     setLoading(true);
@@ -90,6 +176,19 @@ function TechnicianDashboard() {
 
       // If RESOLVED, remove immediately from display and show completion message
       if (form.status === "RESOLVED") {
+        const resolvedSnapshot = {
+          ...ticket,
+          status: "RESOLVED",
+          resolutionNotes: form.notes,
+          resolvedAt: new Date().toISOString(),
+        };
+
+        setResolvedHistory((previous) => {
+          const merged = mergeResolvedTickets([resolvedSnapshot], previous);
+          writeResolvedCache(sessionUser.userId, merged);
+          return merged;
+        });
+
         setTickets((prev) => prev.filter((t) => t.id !== ticket.id));
         setMessage(`✓ Ticket ${ticket.id} marked as DONE and removed from your dashboard.`);
       } else {
@@ -101,6 +200,115 @@ function TechnicianDashboard() {
     } finally {
       setActionLoadingId("");
     }
+  };
+
+  const handleDownloadReport = () => {
+    const resolvedTickets = mergeResolvedTickets(tickets, resolvedHistory);
+
+    if (!resolvedTickets.length) {
+      setError("No resolved tickets are available to generate a report.");
+      return;
+    }
+
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const fileName = `technician_report_${(sessionUser.userId || "technician").replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Technician Work Report", 14, 16);
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Technician: ${sessionUser.userName || "Technician"} (${sessionUser.userId || "N/A"})`, 14, 23);
+    doc.text(`Generated on: ${formatDate(new Date())}`, 14, 29);
+    doc.text(`Resolved tickets: ${resolvedTickets.length}`, 14, 35);
+
+    autoTable(doc, {
+      startY: 41,
+      head: [["Ticket ID", "Title", "Priority", "Resolved At", "Notes"]],
+      body: resolvedTickets.map((ticket) => {
+        const latestComment = getLatestTechnicianComment(ticket, sessionUser.userId);
+        return [
+          ticket.id || "N/A",
+          ticket.title || "N/A",
+          ticket.priority || "MEDIUM",
+          formatDate(latestComment?.createdAt || ticket.resolvedAt || ticket.createdAt),
+          latestComment?.text || ticket.resolutionNotes || "No completion note provided.",
+        ];
+      }),
+      theme: "grid",
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        valign: "top",
+        overflow: "linebreak",
+      },
+      headStyles: {
+        fillColor: [10, 25, 47],
+        textColor: 255,
+        fontStyle: "bold",
+      },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 22 },
+        3: { cellWidth: 32 },
+        4: { cellWidth: "auto" },
+      },
+    });
+
+    let currentY = doc.lastAutoTable.finalY + 10;
+
+    resolvedTickets.forEach((ticket, index) => {
+      const latestComment = getLatestTechnicianComment(ticket, sessionUser.userId);
+      const completionNote = latestComment?.text || ticket.resolutionNotes || "No completion note provided.";
+      const attachmentUrl = latestComment?.imageUrl || "";
+
+      if (currentY > 180) {
+        doc.addPage();
+        currentY = 16;
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text(`Ticket ${ticket.id}`, 14, currentY);
+      currentY += 6;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const sectionLines = [
+        `Completed at: ${formatDate(latestComment?.createdAt || ticket.resolvedAt || ticket.createdAt)}`,
+        `Assigned technician: ${ticket.assignedTechnicianName || ticket.assignedTechnicianId || "Unassigned"}`,
+        `Work done: ${completionNote}`,
+      ];
+
+      sectionLines.forEach((line) => {
+        const wrapped = doc.splitTextToSize(line, 260);
+        doc.text(wrapped, 14, currentY);
+        currentY += wrapped.length * 5 + 1;
+      });
+
+      if (attachmentUrl) {
+        try {
+          doc.addImage(attachmentUrl, 14, currentY, 70, 48);
+          currentY += 52;
+        } catch {
+          doc.text("Attachment image could not be embedded.", 14, currentY);
+          currentY += 6;
+        }
+      }
+
+      if (index < resolvedTickets.length - 1) {
+        currentY += 2;
+        doc.setDrawColor(225, 229, 235);
+        doc.line(14, currentY, 283, currentY);
+        currentY += 6;
+      }
+    });
+
+    doc.save(fileName);
+    setMessage(`PDF report downloaded for ${resolvedTickets.length} resolved ticket${resolvedTickets.length === 1 ? "" : "s"}.`);
+    setError("");
   };
 
   const filteredTickets = useMemo(() => {
@@ -137,19 +345,28 @@ function TechnicianDashboard() {
           Logged in as: {sessionUser.userName || "Technician"} ({sessionUser.userId || "No user ID"})
         </p>
 
-        <div className="mt-5 max-w-xs">
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">Priority Filter</label>
-          <select
-            value={priorityFilter}
-            onChange={(event) => setPriorityFilter(event.target.value)}
-            className="w-full rounded-xl border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm text-white outline-none focus:border-[#61CE70]"
+        <div className="mt-5 flex flex-wrap items-end gap-3">
+          <div className="max-w-xs">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">Priority Filter</label>
+            <select
+              value={priorityFilter}
+              onChange={(event) => setPriorityFilter(event.target.value)}
+              className="w-full rounded-xl border border-slate-600 bg-slate-900/70 px-3 py-2 text-sm text-white outline-none focus:border-[#61CE70]"
+            >
+              {priorityFilters.map((priority) => (
+                <option key={priority} value={priority}>
+                  {priority === "ALL" ? "All priorities" : priority}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={handleDownloadReport}
+            className="rounded-xl bg-[#61CE70] px-4 py-2.5 text-sm font-semibold text-[#0a192f] transition hover:bg-white"
           >
-            {priorityFilters.map((priority) => (
-              <option key={priority} value={priority}>
-                {priority === "ALL" ? "All priorities" : priority}
-              </option>
-            ))}
-          </select>
+            Download PDF Report
+          </button>
         </div>
       </div>
 

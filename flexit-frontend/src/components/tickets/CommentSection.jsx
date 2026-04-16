@@ -19,6 +19,9 @@ function formatDate(value) {
 function CommentSection({ ticketId, comments = [], onRefresh }) {
   const sessionUser = getSessionUser();
   const [formData, setFormData] = useState({ userId: "", userName: "", text: "" });
+  const [imageDataUrl, setImageDataUrl] = useState("");
+  const [imageName, setImageName] = useState("");
+  const [fileInputKey, setFileInputKey] = useState(0);
   const [ticketComments, setTicketComments] = useState(Array.isArray(comments) ? comments : []);
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -60,6 +63,42 @@ function CommentSection({ ticketId, comments = [], onRefresh }) {
     }));
   };
 
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      setImageDataUrl("");
+      setImageName("");
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file for the comment attachment.");
+      event.target.value = "";
+      setImageDataUrl("");
+      setImageName("");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageDataUrl(typeof reader.result === "string" ? reader.result : "");
+      setImageName(file.name);
+    };
+    reader.onerror = () => {
+      setError("Unable to read the selected image.");
+      setImageDataUrl("");
+      setImageName("");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearSelectedImage = () => {
+    setImageDataUrl("");
+    setImageName("");
+    setFileInputKey((previous) => previous + 1);
+  };
+
   const handleAddComment = async (event) => {
     event.preventDefault();
 
@@ -76,12 +115,14 @@ function CommentSection({ ticketId, comments = [], onRefresh }) {
         userId: currentUserId,
         userName: currentUserName,
         text: formData.text.trim(),
+        imageUrl: imageDataUrl,
       });
 
       setFormData((previous) => ({
         ...previous,
         text: "",
       }));
+      clearSelectedImage();
 
       await loadComments();
 
@@ -225,6 +266,30 @@ function CommentSection({ ticketId, comments = [], onRefresh }) {
           className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-[#61CE70] focus:ring-4 focus:ring-[#61CE70]/15"
         />
 
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-slate-700">Attach image (optional)</label>
+          <input
+            key={fileInputKey}
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-[#0a192f] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+          />
+          {imageName ? (
+            <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+              <span className="truncate">Selected: {imageName}</span>
+              <button
+                type="button"
+                onClick={clearSelectedImage}
+                className="ml-3 text-xs font-semibold text-rose-600 transition hover:text-rose-700"
+              >
+                Remove
+              </button>
+            </div>
+          ) : null}
+          <p className="text-xs text-slate-500">Technicians can use this to show the fix result, and admins/users will see it in the ticket comments.</p>
+        </div>
+
         <div className="flex justify-end">
           <button
             type="submit"
@@ -273,6 +338,16 @@ function CommentSection({ ticketId, comments = [], onRefresh }) {
               </div>
 
               <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700">{comment.text}</p>
+
+              {comment.imageUrl ? (
+                <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                  <img
+                    src={comment.imageUrl}
+                    alt={comment.imageName || "Comment attachment"}
+                    className="max-h-80 w-full object-contain bg-slate-50"
+                  />
+                </div>
+              ) : null}
 
               {editingCommentId === comment.id ? (
                 <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-white p-4">

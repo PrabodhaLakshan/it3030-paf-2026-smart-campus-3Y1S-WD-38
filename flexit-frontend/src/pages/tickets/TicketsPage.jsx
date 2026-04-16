@@ -21,6 +21,35 @@ function formatReportDate(value) {
       }).format(date);
 }
 
+function getLatestTechnicianComment(ticket) {
+  const assignedTechnicianId = (ticket.assignedTechnicianId || "").trim();
+  const comments = Array.isArray(ticket.comments) ? ticket.comments : [];
+
+  const technicianComments = comments
+    .filter((comment) => {
+      const commentUserId = (comment?.userId || "").trim();
+      if (!assignedTechnicianId) {
+        return Boolean(commentUserId);
+      }
+
+      return commentUserId && commentUserId === assignedTechnicianId;
+    })
+    .slice()
+    .sort((left, right) => new Date(right.createdAt || 0) - new Date(left.createdAt || 0));
+
+  return technicianComments[0] || null;
+}
+
+function formatTechnicianLabel(ticket) {
+  if (ticket.assignedTechnicianName) {
+    return ticket.assignedTechnicianId
+      ? `${ticket.assignedTechnicianName} (${ticket.assignedTechnicianId})`
+      : ticket.assignedTechnicianName;
+  }
+
+  return ticket.assignedTechnicianId || "Unassigned";
+}
+
 function extractTechniciansFromTickets(tickets) {
   const seen = new Set();
   const derived = [];
@@ -82,6 +111,63 @@ function TicketsPage() {
     }, 2800);
   };
 
+  const addTechnicianReportSection = (doc, ticket, startY) => {
+    const latestTechnicianComment = getLatestTechnicianComment(ticket);
+    const completionDate = latestTechnicianComment?.createdAt || ticket.createdAt;
+    const technicianNote = latestTechnicianComment?.text || ticket.resolutionNotes || "No technician note provided.";
+    const technicianImage = latestTechnicianComment?.imageUrl || "";
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let currentY = startY;
+
+    if (currentY > 185) {
+      doc.addPage();
+      currentY = 16;
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(`Ticket ${ticket.id} - Technician Completion`, 14, currentY);
+
+    currentY += 6;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+
+    const details = [
+      ["Technician", formatTechnicianLabel(ticket)],
+      ["Work Finished At", formatReportDate(completionDate)],
+      ["Status", ticket.status || "RESOLVED"],
+      ["Resolution Notes", ticket.resolutionNotes || "No resolution notes provided."],
+      ["Technician Work Done", technicianNote],
+    ];
+
+    details.forEach(([label, value]) => {
+      const lines = doc.splitTextToSize(`${label}: ${value}`, pageWidth - 28);
+      doc.text(lines, 14, currentY);
+      currentY += lines.length * 5 + 1;
+    });
+
+    if (technicianImage && currentY < 160) {
+      currentY += 2;
+      doc.setFont("helvetica", "bold");
+      doc.text("Technician Attachment", 14, currentY);
+      currentY += 4;
+
+      const imageHeight = 48;
+      const imageWidth = 70;
+
+      try {
+        doc.addImage(technicianImage, 14, currentY, imageWidth, imageHeight);
+        currentY += imageHeight + 4;
+      } catch {
+        doc.setFont("helvetica", "normal");
+        doc.text("Attachment could not be embedded in the PDF.", 14, currentY);
+        currentY += 6;
+      }
+    }
+
+    return currentY + 4;
+  };
+
   const handleGenerateResolvedReport = () => {
     const resolvedTickets = tickets.filter((ticket) => (ticket.status || "OPEN") === "RESOLVED");
 
@@ -108,9 +194,7 @@ function TicketsPage() {
       ticket.id || "N/A",
       ticket.title || "N/A",
       ticket.reportedByUserName || ticket.reportedByUserId || "Unknown",
-      ticket.assignedTechnicianName
-        ? `${ticket.assignedTechnicianName} (${ticket.assignedTechnicianId || ""})`.trim()
-        : ticket.assignedTechnicianId || "Unassigned",
+      formatTechnicianLabel(ticket),
       ticket.assetFacility || "N/A",
       ticket.category || "N/A",
       ticket.priority || "MEDIUM",
@@ -145,6 +229,23 @@ function TicketsPage() {
         7: { cellWidth: 28 },
         8: { cellWidth: "auto" },
       },
+    });
+
+    let currentY = doc.lastAutoTable.finalY + 10;
+
+    resolvedTickets.forEach((ticket, index) => {
+      if (currentY > 180) {
+        doc.addPage();
+        currentY = 16;
+      }
+
+      currentY = addTechnicianReportSection(doc, ticket, currentY);
+
+      if (index < resolvedTickets.length - 1) {
+        doc.setDrawColor(225, 229, 235);
+        doc.line(14, currentY, 283, currentY);
+        currentY += 6;
+      }
     });
 
     doc.save(fileName);
@@ -382,11 +483,11 @@ function TicketsPage() {
           techId: (resolveTechnicianId(ticket.id) || ticket.assignedTechnicianId || "").trim(),
           userId,
         }),
-      `Ticket ${ticket.id} closed and removed.`
+      `Ticket ${ticket.id} updated to RESOLVED.`
     );
 
     if (success) {
-      showPopup("success", `Ticket ${ticket.id} closed and deleted.`);
+      showPopup("success", `Ticket ${ticket.id} is now RESOLVED and remains in the list.`);
     }
   };
 
