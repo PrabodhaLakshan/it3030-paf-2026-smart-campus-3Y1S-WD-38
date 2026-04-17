@@ -16,13 +16,24 @@ function formatDate(value) {
       }).format(date);
 }
 
+function normalizeComments(comments) {
+  if (!Array.isArray(comments)) {
+    return [];
+  }
+
+  return comments.map((comment) => ({
+    ...comment,
+    role: (comment?.role || "").trim().toUpperCase(),
+  }));
+}
+
 function CommentSection({ ticketId, comments = [], onRefresh }) {
   const sessionUser = getSessionUser();
   const [formData, setFormData] = useState({ userId: "", userName: "", text: "" });
   const [imageDataUrl, setImageDataUrl] = useState("");
   const [imageName, setImageName] = useState("");
   const [fileInputKey, setFileInputKey] = useState(0);
-  const [ticketComments, setTicketComments] = useState(Array.isArray(comments) ? comments : []);
+  const [ticketComments, setTicketComments] = useState(normalizeComments(comments));
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -39,16 +50,16 @@ function CommentSection({ ticketId, comments = [], onRefresh }) {
 
     try {
       const ticket = await getTicketById(ticketId);
-      setTicketComments(Array.isArray(ticket?.comments) ? ticket.comments : []);
+      setTicketComments(normalizeComments(ticket?.comments));
     } catch {
-      setTicketComments(Array.isArray(comments) ? comments : []);
+      setTicketComments(normalizeComments(comments));
     } finally {
       setCommentsLoading(false);
     }
   };
 
   useEffect(() => {
-    setTicketComments(Array.isArray(comments) ? comments : []);
+    setTicketComments(normalizeComments(comments));
   }, [comments]);
 
   useEffect(() => {
@@ -220,7 +231,10 @@ function CommentSection({ ticketId, comments = [], onRefresh }) {
     comment.userId === currentUserId &&
     comment.role === currentUserRole;
 
-  const sortedComments = [...ticketComments].sort(
+  // Keep visibility open across USER, ADMIN, and TECHNICIAN comments.
+  const visibleComments = [...ticketComments];
+
+  const sortedComments = visibleComments.sort(
     (left, right) => new Date(right?.createdAt || 0) - new Date(left?.createdAt || 0)
   );
 
