@@ -12,4 +12,4 @@ export const updateResource = (id, data) => axios.put(`${BASE_URL}/${id}`, data)
 
 export const deleteResource = (id) => axios.delete(`${BASE_URL}/${id}`);
 
-export const searchResources = (params) => axios.get(`${BASE_URL}/search`, { params });
+export const searchResources = (params) => axios.get(BASE_URL, { params });

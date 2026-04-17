@@ -2,11 +2,11 @@ package com.flexit.controller;
 
 import com.flexit.model.Comment;
 import com.flexit.model.IncidentTicket;
-import com.flexit.model.TechnicianOption;
 import com.flexit.model.TicketStatus;
 import com.flexit.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,7 +24,7 @@ public class TicketController {
         this.ticketService = ticketService;
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<IncidentTicket> createTicket(@Valid @RequestBody IncidentTicket ticket) {
         return new ResponseEntity<>(ticketService.createTicket(ticket), HttpStatus.CREATED);
     }
@@ -43,7 +43,7 @@ public class TicketController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/with-files")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<IncidentTicket> createTicketWithFiles(
             @RequestPart("ticket") @Valid IncidentTicket ticket,
             @RequestPart(value = "files", required = false) List<MultipartFile> files) {
@@ -53,11 +53,6 @@ public class TicketController {
     @GetMapping
     public ResponseEntity<List<IncidentTicket>> getAllTickets() {
         return ResponseEntity.ok(ticketService.getAllTickets());
-    }
-
-    @GetMapping("/technicians")
-    public ResponseEntity<List<TechnicianOption>> getAvailableTechnicians() {
-        return ResponseEntity.ok(ticketService.getAvailableTechnicians());
     }
 
     @GetMapping("/{id}")
@@ -100,7 +95,7 @@ public class TicketController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/assign")
+    @PatchMapping("/{id}/assignee")
     public ResponseEntity<IncidentTicket> assignTechnician(@PathVariable String id, @RequestParam String techId) {
         return ResponseEntity.ok(ticketService.assignTechnician(id, techId));
     }

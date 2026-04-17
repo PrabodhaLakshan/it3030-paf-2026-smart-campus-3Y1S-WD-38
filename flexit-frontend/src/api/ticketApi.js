@@ -82,7 +82,7 @@ export function getAllTickets() {
 }
 
 export function getTechnicians() {
-  return request(`${BASE_URL}/technicians`);
+  return request("http://localhost:8080/api/technicians");
 }
 
 export function getTicketById(id) {
@@ -117,7 +117,7 @@ export function createTicketWithFiles(ticket, files = []) {
     formData.append("files", file);
   });
 
-  return request(`${BASE_URL}/with-files`, buildOptions("POST", formData));
+  return request(BASE_URL, buildOptions("POST", formData));
 }
 
 export function updateTicketStatus(id, { status, notes, techId, userId }) {
@@ -164,5 +164,5 @@ export function assignTechnician(id, techId) {
 
   if (techId) params.set("techId", techId);
 
-  return request(`${BASE_URL}/${id}/assign?${params.toString()}`, buildOptions("POST"));
+  return request(`${BASE_URL}/${id}/assignee?${params.toString()}`, buildOptions("PATCH"));
 }

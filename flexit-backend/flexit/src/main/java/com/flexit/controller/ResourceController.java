@@ -27,7 +27,15 @@ public class ResourceController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Resource>> getAllResources() {
+    public ResponseEntity<List<Resource>> getAllResources(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Integer capacity,
+            @RequestParam(required = false) String location) {
+
+        if (type != null || capacity != null || location != null) {
+            return ResponseEntity.ok(resourceService.searchResources(type, capacity, location));
+        }
+
         return ResponseEntity.ok(resourceService.getAllResources());
     }
 
@@ -48,13 +56,5 @@ public class ResourceController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<Resource>> searchResources(
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) Integer capacity,
-            @RequestParam(required = false) String location) {
-
-        return ResponseEntity.ok(resourceService.searchResources(type, capacity, location));
-    }
 }
 
