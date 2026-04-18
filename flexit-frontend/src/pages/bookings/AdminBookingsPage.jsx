@@ -15,9 +15,12 @@ import {
   rejectBooking,
 } from "../../api/bookingApi";
 
+const STATUS_FILTERS = ["ALL", "PENDING", "APPROVED", "REJECTED", "CANCELLED"];
+
 function AdminBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loadingAction, setLoadingAction] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("ALL");
 
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
@@ -142,6 +145,14 @@ function AdminBookingsPage() {
     }
   };
 
+  const filteredBookings = bookings.filter((booking) => {
+    if (selectedStatus === "ALL") {
+      return true;
+    }
+
+    return booking.status === selectedStatus;
+  });
+
   return (
     <div className="mx-auto max-w-7xl">
       {/* Toast */}
@@ -262,16 +273,36 @@ function AdminBookingsPage() {
           Booking Management
         </h1>
 
-        <p className="mt-2 text-sm text-slate-500">
-          Review, approve, and monitor all booking requests.
-        </p>
+        
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 p-5">
-          <h2 className="text-lg font-semibold text-slate-900">
-            All Booking Requests
-          </h2>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">
+                All Booking Requests
+              </h2>
+               
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {STATUS_FILTERS.map((status) => (
+                <button
+                  key={status}
+                  type="button"
+                  onClick={() => setSelectedStatus(status)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    selectedStatus === status
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -300,7 +331,17 @@ function AdminBookingsPage() {
             </thead>
 
             <tbody>
-              {bookings.map((booking) => (
+              {filteredBookings.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-10 text-center text-sm text-slate-500"
+                  >
+                    No bookings found for the selected status.
+                  </td>
+                </tr>
+              ) : (
+                filteredBookings.map((booking) => (
                 <tr
                   key={booking.id}
                   className="border-t border-slate-100 transition hover:bg-slate-50/70"
@@ -344,7 +385,8 @@ function AdminBookingsPage() {
                     )}
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
