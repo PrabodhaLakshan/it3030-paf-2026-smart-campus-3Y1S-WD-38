@@ -6,6 +6,7 @@ import { assignTechnician, getAllTickets, getTechnicians, updateTicketStatus } f
 
 const statusFilters = ["ALL", "OPEN", "IN_PROGRESS", "RESOLVED", "REJECTED"];
 const priorityFilters = ["ALL", "LOW", "MEDIUM", "HIGH", "URGENT"];
+const TICKET_ACTION_HISTORY_KEY = "flexit_admin_ticket_action_history_v1";
 
 function formatReportDate(value) {
   if (!value) {
@@ -68,6 +69,20 @@ function extractTechniciansFromTickets(tickets) {
   return derived;
 }
 
+function loadTicketActionHistory() {
+  try {
+    const raw = localStorage.getItem(TICKET_ACTION_HISTORY_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 function TicketsPage() {
   const [tickets, setTickets] = useState([]);
   const [technicians, setTechnicians] = useState([]);
@@ -96,6 +111,7 @@ function TicketsPage() {
     bgX: 50,
     bgY: 50,
   });
+  const [ticketActionHistory, setTicketActionHistory] = useState(loadTicketActionHistory);
 
   const countWords = (value) => {
     const text = (value || "").trim();
@@ -113,101 +129,94 @@ function TicketsPage() {
     }, 2800);
   };
 
-  const addTechnicianReportSection = (doc, ticket, startY) => {
-    const latestTechnicianComment = getLatestTechnicianComment(ticket);
-    const completionDate = latestTechnicianComment?.createdAt || ticket.createdAt;
-    const technicianNote = latestTechnicianComment?.text || ticket.resolutionNotes || "No technician note provided.";
-    const technicianImage = latestTechnicianComment?.imageUrl || "";
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let currentY = startY;
+  const handleGenerateResolvedReport = () => {
+    const activeResolvedEntries = tickets
+      .filter((ticket) => (ticket.status || "OPEN") === "RESOLVED")
+      .map((ticket) => {
+        const latestTechnicianComment = getLatestTechnicianComment(ticket);
+        const resolvedAt = ticket.resolvedAt || latestTechnicianComment?.createdAt || ticket.createdAt;
+        const reason = ticket.resolutionNotes || "No resolution reason provided.";
+        const workDone = latestTechnicianComment?.text || reason;
 
-    if (currentY > 185) {
-      doc.addPage();
-      currentY = 16;
-    }
+        return {
+          id: ticket.id || "N/A",
+          title: ticket.title || "Untitled ticket",
+          reporter: ticket.reportedByUserName || ticket.reportedByUserId || "Unknown",
+          technician: formatTechnicianLabel(ticket),
+          action: "RESOLVED",
+          closedAt: resolvedAt,
+          reason,
+          workDone,
+        };
+      });
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text(`Ticket ${ticket.id} - Technician Completion`, 14, currentY);
+    const archivedResolvedEntries = ticketActionHistory
+      .filter((entry) => ["CLOSED", "RESOLVED"].includes((entry.action || "").toUpperCase()))
+      .map((entry) => ({
+        id: entry.id || "N/A",
+        title: entry.title || "Untitled ticket",
+        reporter: entry.reporter || "Unknown",
+        technician: entry.technician || "Unassigned",
+        action: (entry.action || "CLOSED").toUpperCase(),
+        closedAt: entry.closedAt,
+        reason: entry.reason || "No resolution reason provided.",
+        workDone: entry.workDone || entry.reason || "No work summary provided.",
+      }));
 
-    currentY += 6;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
+    const mergedByTicketId = new Map();
+    [...archivedResolvedEntries, ...activeResolvedEntries].forEach((entry) => {
+      const key = entry.id || `${entry.title}-${entry.closedAt}`;
+      const existing = mergedByTicketId.get(key);
 
-    const details = [
-      ["Technician", formatTechnicianLabel(ticket)],
-      ["Work Finished At", formatReportDate(completionDate)],
-      ["Status", ticket.status || "RESOLVED"],
-      ["Resolution Notes", ticket.resolutionNotes || "No resolution notes provided."],
-      ["Technician Work Done", technicianNote],
-    ];
+      if (!existing) {
+        mergedByTicketId.set(key, entry);
+        return;
+      }
 
-    details.forEach(([label, value]) => {
-      const lines = doc.splitTextToSize(`${label}: ${value}`, pageWidth - 28);
-      doc.text(lines, 14, currentY);
-      currentY += lines.length * 5 + 1;
+      const existingTime = new Date(existing.closedAt || 0).getTime();
+      const nextTime = new Date(entry.closedAt || 0).getTime();
+      if (nextTime >= existingTime) {
+        mergedByTicketId.set(key, entry);
+      }
     });
 
-    if (technicianImage && currentY < 160) {
-      currentY += 2;
-      doc.setFont("helvetica", "bold");
-      doc.text("Technician Attachment", 14, currentY);
-      currentY += 4;
+    const reportEntries = Array.from(mergedByTicketId.values())
+      .slice()
+      .sort((left, right) => new Date(right.closedAt || 0) - new Date(left.closedAt || 0));
 
-      const imageHeight = 48;
-      const imageWidth = 70;
-
-      try {
-        doc.addImage(technicianImage, 14, currentY, imageWidth, imageHeight);
-        currentY += imageHeight + 4;
-      } catch {
-        doc.setFont("helvetica", "normal");
-        doc.text("Attachment could not be embedded in the PDF.", 14, currentY);
-        currentY += 6;
-      }
-    }
-
-    return currentY + 4;
-  };
-
-  const handleGenerateResolvedReport = () => {
-    const resolvedTickets = tickets.filter((ticket) => (ticket.status || "OPEN") === "RESOLVED");
-
-    if (!resolvedTickets.length) {
-      const message = "No resolved tickets are available to include in the report.";
+    if (!reportEntries.length) {
+      const message = "No resolved or closed tickets are available to include in the report.";
       setActionError(message);
       showPopup("error", message);
       return;
     }
 
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    const fileName = `resolved_tickets_report_${new Date().toISOString().slice(0, 10)}.pdf`;
+    const fileName = `resolved_closed_summary_${new Date().toISOString().slice(0, 10)}.pdf`;
 
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
-    doc.text("Resolved Tickets Report", 14, 16);
+    doc.text("Resolved & Closed Tickets Summary", 14, 16);
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text(`Generated on: ${formatReportDate(new Date())}`, 14, 23);
-    doc.text(`Total resolved tickets: ${resolvedTickets.length}`, 14, 29);
+    doc.text(`Total summary items: ${reportEntries.length}`, 14, 29);
 
-    const rows = resolvedTickets.map((ticket) => [
-      ticket.id || "N/A",
-      ticket.title || "N/A",
-      ticket.reportedByUserName || ticket.reportedByUserId || "Unknown",
-      formatTechnicianLabel(ticket),
-      ticket.assetFacility || "N/A",
-      ticket.location || "N/A",
-      ticket.category || "N/A",
-      ticket.priority || "MEDIUM",
-      formatReportDate(ticket.createdAt),
-      ticket.resolutionNotes || "",
+    const rows = reportEntries.map((entry) => [
+      entry.id || "N/A",
+      entry.title || "N/A",
+      entry.reporter || "Unknown",
+      entry.technician || "Unassigned",
+      entry.action || "N/A",
+      formatReportDate(entry.closedAt),
+      entry.reason || "",
+      entry.workDone || "",
     ]);
 
     autoTable(doc, {
       startY: 35,
-      head: [["Ticket ID", "Title", "Reporter", "Assigned Technician", "Asset / Facility", "Location", "Category", "Priority", "Created At", "Resolution Notes"]],
+      head: [["Ticket ID", "Title", "Reporter", "Assigned Technician", "Action", "Resolved/Closed At", "Reason", "Work Done"]],
       body: rows,
       theme: "grid",
       styles: {
@@ -222,42 +231,40 @@ function TicketsPage() {
         fontStyle: "bold",
       },
       columnStyles: {
-        0: { cellWidth: 18 },
-        1: { cellWidth: 24 },
-        2: { cellWidth: 28 },
-        3: { cellWidth: 28 },
-        4: { cellWidth: 24 },
+        0: { cellWidth: 20 },
+        1: { cellWidth: 34 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 34 },
+        4: { cellWidth: 20 },
         5: { cellWidth: 28 },
-        6: { cellWidth: 18 },
-        7: { cellWidth: 16 },
-        8: { cellWidth: 20 },
-        9: { cellWidth: "auto" },
+        6: { cellWidth: 38 },
+        7: { cellWidth: "auto" },
       },
-    });
-
-    let currentY = doc.lastAutoTable.finalY + 10;
-
-    resolvedTickets.forEach((ticket, index) => {
-      if (currentY > 180) {
-        doc.addPage();
-        currentY = 16;
-      }
-
-      currentY = addTechnicianReportSection(doc, ticket, currentY);
-
-      if (index < resolvedTickets.length - 1) {
-        doc.setDrawColor(225, 229, 235);
-        doc.line(14, currentY, 283, currentY);
-        currentY += 6;
-      }
     });
 
     doc.save(fileName);
 
-    const message = `Resolved tickets report downloaded (${resolvedTickets.length} ticket${resolvedTickets.length === 1 ? "" : "s"}).`;
+    const message = `Resolved/closed summary PDF downloaded (${reportEntries.length} item${reportEntries.length === 1 ? "" : "s"}).`;
     setActionError("");
     setActionMessage(message);
     showPopup("success", message);
+  };
+
+  const archiveTicketAction = (ticket, action, reason) => {
+    const closedAt = new Date().toISOString();
+    const latestTechnicianComment = getLatestTechnicianComment(ticket);
+    const archived = {
+      id: ticket.id || "N/A",
+      title: ticket.title || "Untitled ticket",
+      reporter: ticket.reportedByUserName || ticket.reportedByUserId || "Unknown",
+      technician: formatTechnicianLabel(ticket),
+      action,
+      closedAt,
+      reason,
+      workDone: latestTechnicianComment?.text || ticket.resolutionNotes || reason,
+    };
+
+    setTicketActionHistory((previous) => [archived, ...previous].slice(0, 300));
   };
 
   const loadTickets = async () => {
@@ -307,6 +314,14 @@ function TicketsPage() {
   useEffect(() => {
     loadTickets();
   }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(TICKET_ACTION_HISTORY_KEY, JSON.stringify(ticketActionHistory));
+    } catch {
+      // Ignore storage write failures so ticket actions continue to work.
+    }
+  }, [ticketActionHistory]);
 
   useEffect(() => {
     if (!previewImageUrl) {
@@ -405,7 +420,9 @@ function TicketsPage() {
     };
   }, [tickets, rejectedCount]);
 
-  const runAction = async (ticketId, fn, successText) => {
+  const runAction = async (ticketId, fn, successText, options = {}) => {
+    const { reload = true } = options;
+
     setActionMessage("");
     setActionError("");
     setActionLoadingId(ticketId);
@@ -413,7 +430,9 @@ function TicketsPage() {
     try {
       await fn();
       setActionMessage(successText);
-      await loadTickets();
+      if (reload) {
+        await loadTickets();
+      }
       return true;
     } catch (submitError) {
       const message = submitError.message || "Action failed.";
@@ -460,11 +479,14 @@ function TicketsPage() {
     const success = await runAction(
       ticket.id,
       () => updateTicketStatus(ticket.id, { status: "REJECTED", notes, techId }),
-      `Ticket ${ticket.id} rejected and removed.`
+      `Ticket ${ticket.id} rejected and removed.`,
+      { reload: false }
     );
 
     if (success) {
+      archiveTicketAction(ticket, "REJECTED", notes);
       setRejectedCount((previous) => previous + 1);
+      setTickets((previous) => previous.filter((item) => item.id !== ticket.id));
       setRejectReasonByTicket((previous) => {
         const next = { ...previous };
         delete next[ticket.id];
@@ -501,11 +523,19 @@ function TicketsPage() {
           techId: (resolveTechnicianId(ticket.id) || ticket.assignedTechnicianId || "").trim(),
           userId,
         }),
-      `Ticket ${ticket.id} updated to RESOLVED.`
+      `Ticket ${ticket.id} closed and removed from the table.`,
+      { reload: false }
     );
 
     if (success) {
-      showPopup("success", `Ticket ${ticket.id} is now RESOLVED and remains in the list.`);
+      archiveTicketAction(ticket, "CLOSED", notes);
+      setTickets((previous) => previous.filter((item) => item.id !== ticket.id));
+      setCloseNoteByTicket((previous) => {
+        const next = { ...previous };
+        delete next[ticket.id];
+        return next;
+      });
+      showPopup("success", `Ticket ${ticket.id} closed and removed.`);
     }
   };
 
