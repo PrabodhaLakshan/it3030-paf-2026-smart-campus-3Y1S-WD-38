@@ -14,6 +14,11 @@ import com.flexit.model.User;
 import com.flexit.model.UserRole;
 import com.flexit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,12 +30,15 @@ import java.util.Collections;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final MongoOperations mongoOperations;
     private final PasswordEncoder passwordEncoder;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
 
     public AuthService(UserRepository userRepository,
+                       MongoOperations mongoOperations,
                        @Value("${google.oauth.client-id}") String googleClientId) {
         this.userRepository = userRepository;
+        this.mongoOperations = mongoOperations;
         this.passwordEncoder = new BCryptPasswordEncoder();
         this.googleIdTokenVerifier = new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(),
@@ -52,6 +60,7 @@ public class AuthService {
         user.setEmail(normalizedEmail);
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.USER);
+        user.setUserCode(generateNextUserCode());
         user.setCreatedAt(LocalDateTime.now());
 
         User savedUser = userRepository.save(user);
@@ -59,7 +68,7 @@ public class AuthService {
 
         return new AuthResponse(
                 "Account created successfully",
-                savedUser.getId(),
+            savedUser.getUserCode(),
                 savedUser.getFullName(),
             savedUser.getEmail(),
             role.name()
@@ -80,11 +89,12 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
+        String userCode = ensureUserCode(user);
         UserRole role = resolveRole(user);
 
         return new AuthResponse(
                 "Login successful",
-                user.getId(),
+            userCode,
                 user.getFullName(),
                 user.getEmail(),
                 role.name()
@@ -108,11 +118,12 @@ public class AuthService {
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
                 .orElseGet(() -> createGoogleUser(normalizedEmail, fullName));
 
+        String userCode = ensureUserCode(user);
         UserRole role = resolveRole(user);
 
         return new AuthResponse(
                 "Google login successful",
-                user.getId(),
+            userCode,
                 user.getFullName(),
                 user.getEmail(),
                 role.name()
@@ -160,8 +171,51 @@ public class AuthService {
         user.setEmail(normalizedEmail);
         user.setPasswordHash(null);
         user.setRole(UserRole.USER);
+        user.setUserCode(generateNextUserCode());
         user.setCreatedAt(LocalDateTime.now());
         return userRepository.save(user);
+    }
+
+    private String ensureUserCode(User user) {
+        if (user.getUserCode() != null && !user.getUserCode().isBlank()) {
+            return user.getUserCode();
+        }
+
+        user.setUserCode(generateNextUserCode());
+        User savedUser = userRepository.save(user);
+        return savedUser.getUserCode();
+    }
+
+    private String generateNextUserCode() {
+        Query query = new Query(Criteria.where("_id").is("user_code"));
+        Update update = new Update().inc("seq", 1);
+        FindAndModifyOptions options = FindAndModifyOptions.options().upsert(true).returnNew(true);
+
+        SequenceCounter counter = mongoOperations.findAndModify(
+                query,
+                update,
+                options,
+                SequenceCounter.class,
+                "counters"
+        );
+
+        if (counter == null || counter.getSeq() <= 0) {
+            throw new IllegalStateException("Unable to generate user code");
+        }
+
+        return String.format("user%03d", counter.getSeq());
+    }
+
+    private static final class SequenceCounter {
+        private long seq;
+
+        public long getSeq() {
+            return seq;
+        }
+
+        public void setSeq(long seq) {
+            this.seq = seq;
+        }
     }
 
     private UserRole resolveRole(User user) {
