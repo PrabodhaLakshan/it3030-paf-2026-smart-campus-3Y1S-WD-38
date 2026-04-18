@@ -376,7 +376,7 @@ function MyBookingsPage() {
                     {getStatusBadge(booking.status)}
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     <div className="rounded-2xl bg-slate-50 p-4">
                       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                         Start Time
@@ -407,14 +407,6 @@ function MyBookingsPage() {
                       </p>
                     </div>
 
-                    <div className="rounded-2xl bg-slate-50 p-4">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        Booking ID
-                      </p>
-                      <p className="mt-2 text-sm font-medium text-slate-700 break-all">
-                        {booking.id}
-                      </p>
-                    </div>
                   </div>
 
                   {booking.purpose && (
