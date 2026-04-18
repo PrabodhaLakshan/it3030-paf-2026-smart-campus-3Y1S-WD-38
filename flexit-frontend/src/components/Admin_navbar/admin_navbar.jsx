@@ -1,6 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function AdminNavbar() {
+  const navigate = useNavigate();
+  const [adminName, setAdminName] = useState('Admin');
+
+  useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem('flexitUser') || '{}');
+      if (user?.fullName) {
+        setAdminName(user.fullName);
+      }
+    } catch {
+      // Ignored
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('flexitUser');
+    navigate('/login');
+  };
+
   return (
     <nav className="w-full bg-white/70 backdrop-blur-xl border-b border-white/20 shadow-[0_4px_30px_rgba(0,0,0,0.05)] sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,15 +65,18 @@ function AdminNavbar() {
             {/* Profile */}
             <button className="flex items-center gap-3 p-1.5 pr-4 rounded-full bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-md transition-all duration-300 group">
               <div className="h-10 w-10 rounded-full bg-[#0a192f] flex justify-center items-center text-[#61CE70] font-bold shadow-inner border-2 border-[#61CE70]/20">
-                A
+                {adminName.charAt(0).toUpperCase()}
               </div>
               <span className="hidden sm:block font-semibold text-sm text-gray-700 group-hover:text-[#61CE70] transition-colors">
-                Admin
+                {adminName}
               </span>
             </button>
             
             {/* Logout */}
-            <button className="px-6 py-2.5 rounded-full bg-[#0a192f] text-white font-semibold text-sm transition-all duration-300 hover:bg-red-500 hover:shadow-lg hover:shadow-red-500/30 focus:ring-4 focus:ring-red-200 active:scale-95">
+            <button 
+              onClick={handleLogout}
+              className="px-6 py-2.5 rounded-full bg-[#0a192f] text-white font-semibold text-sm transition-all duration-300 hover:bg-red-500 hover:shadow-lg hover:shadow-red-500/30 focus:ring-4 focus:ring-red-200 active:scale-95"
+            >
               Logout
             </button>
           </div>

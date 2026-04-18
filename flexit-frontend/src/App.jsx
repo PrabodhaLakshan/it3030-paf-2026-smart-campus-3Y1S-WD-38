@@ -21,7 +21,7 @@ function PrivateRoute({ children }) {
 function AppLayout() {
   const location = useLocation();
   const authPaths = ['/login', '/signup'];
-  const hideNavbar = authPaths.includes(location.pathname);
+  const hideNavbar = authPaths.includes(location.pathname) || location.pathname.startsWith('/admin');
 
   return (
     <>
