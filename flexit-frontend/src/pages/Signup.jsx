@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { registerUser } from '../api/authApi';
+import { GoogleLogin } from '@react-oauth/google';
+import { googleLogin, registerUser } from '../api/authApi';
 import './Auth.css';
 
 const getErrorMessage = (err) => {
@@ -32,6 +33,15 @@ function Signup() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleAuthSuccess = (data) => {
+    localStorage.setItem('flexitUser', JSON.stringify(data));
+    if (data.role === 'ADMIN') {
+      navigate('/admin-dashboard');
+    } else {
+      navigate('/resources');
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -69,6 +79,25 @@ function Signup() {
       });
 
       navigate('/login');
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      setError('Google authentication failed. Please try again.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const data = await googleLogin({ idToken: credentialResponse.credential });
+      handleAuthSuccess(data);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -164,9 +193,13 @@ function Signup() {
           </div>
 
           <div className="social-login">
-            <button className="btn-social google">
-              <span>🔍</span> Sign up with Google
-            </button>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError('Google authentication failed. Please try again.')}
+              text="signup_with"
+              shape="pill"
+              width="100%"
+            />
             <button className="btn-social github">
               <span>💻</span> Sign up with GitHub
             </button>
