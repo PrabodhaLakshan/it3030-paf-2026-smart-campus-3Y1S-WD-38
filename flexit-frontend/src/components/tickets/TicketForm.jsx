@@ -164,16 +164,16 @@ function TicketForm({
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1180px]">
-      <div className="overflow-hidden rounded-[2rem] border border-cyan-200/40 bg-white shadow-2xl">
-        <div className="border-b border-slate-100 bg-linear-to-r from-slate-950 via-slate-900 to-[#0a192f] px-5 py-6 text-white sm:px-8 sm:py-7">
+    <div className="mx-auto w-full max-w-[1120px]">
+      <div className="overflow-hidden rounded-[2.25rem] border border-cyan-200/35 bg-white shadow-[0_34px_90px_-60px_rgba(15,23,42,0.5)]">
+        <div className="border-b border-slate-100 bg-linear-to-r from-slate-950 via-slate-900 to-[#0a192f] px-5 py-5 text-white sm:px-7 sm:py-6">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#61CE70]">Ticket Desk</p>
-          <h2 className="mt-3 text-2xl font-semibold sm:text-3xl">{heading}</h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-300">{description}</p>
+          <h2 className="mt-2 text-2xl font-semibold sm:text-[2rem]">{heading}</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{description}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid gap-0 lg:grid-cols-[minmax(0,1.1fr)_320px]">
-          <div className="space-y-6 p-5 sm:p-8">
+        <form onSubmit={handleSubmit} className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="space-y-5 p-5 sm:p-6 lg:p-8">
             {success ? (
               <div className="flex items-center gap-3 rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-sm">
                 {success}
@@ -186,7 +186,7 @@ function TicketForm({
               </div>
             ) : null}
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">Asset / Facility</label>
                 <input
@@ -196,7 +196,7 @@ function TicketForm({
                   onChange={handleChange}
                   required
                   placeholder="Select or type asset/facility"
-                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
                 />
                 <datalist id="asset-facility-options">
                   {assetFacilityOptions.map((option) => (
@@ -214,7 +214,7 @@ function TicketForm({
                   onChange={handleChange}
                   required
                   placeholder="Select or type category"
-                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
                 />
                 <datalist id="category-options">
                   {categoryOptions.map((option) => (
@@ -231,7 +231,7 @@ function TicketForm({
                   onChange={handleChange}
                   required
                   placeholder="e.g. Building A, Floor 2, Room 203"
-                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
                 />
               </div>
 
@@ -241,7 +241,7 @@ function TicketForm({
                   name="priority"
                   value={formData.priority}
                   onChange={handleChange}
-                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
                 >
                   <option value="LOW">LOW</option>
                   <option value="MEDIUM">MEDIUM</option>
@@ -257,7 +257,7 @@ function TicketForm({
                   onChange={handleChange}
                   rows={6}
                   placeholder="Describe what is happening, when it started, and any context that helps"
-                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
                 />
               </div>
 
@@ -270,7 +270,7 @@ function TicketForm({
                       value={formData.reportedByUserId}
                       onChange={handleChange}
                       placeholder="User identifier"
-                      className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                      className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
                     />
                   </div>
 
@@ -281,7 +281,7 @@ function TicketForm({
                       value={formData.reportedByUserName}
                       onChange={handleChange}
                       placeholder="Display name"
-                      className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                      className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
                     />
                   </div>
                 </>
@@ -306,7 +306,7 @@ function TicketForm({
                       accept="image/*"
                       multiple
                       onChange={handleAttachmentChange}
-                      className="mt-2 w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition file:mr-4 file:rounded-xl file:border-0 file:bg-[#0a192f] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-cyan-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-200/40"
+                      className="mt-2 w-full rounded-2xl border border-cyan-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition file:mr-4 file:rounded-xl file:border-0 file:bg-[#0a192f] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-cyan-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-200/40"
                     />
                     <p className="mt-2 text-xs text-slate-600">Attach up to 3 images only. Selected images are sent with the ticket as multipart data.</p>
                   </>
@@ -326,8 +326,8 @@ function TicketForm({
             </div>
           </div>
 
-          <aside className="border-t border-slate-100 bg-slate-50/70 p-5 lg:border-l lg:border-t-0 lg:p-6">
-            <div className="space-y-4 lg:sticky lg:top-6">
+          <aside className="border-t border-slate-100 bg-slate-50/70 p-4 xl:border-l xl:border-t-0 xl:p-5">
+            <div className="space-y-3 xl:sticky xl:top-5">
               <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#61CE70]">Ticket preview</p>
                 <h3 className="mt-2 text-lg font-semibold text-slate-900">{generatedTitle}</h3>
@@ -352,18 +352,18 @@ function TicketForm({
 
               <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Tips</p>
-                <ul className="mt-3 space-y-3 text-sm text-slate-600">
+                <ul className="mt-3 space-y-2.5 text-sm text-slate-600">
                   <li>Use a clear location so the support team can find the issue faster.</li>
                   <li>Add 1-3 images if the issue is visual or hardware-related.</li>
                   <li>Scroll down after filling the top fields to review attachments and submit.</li>
                 </ul>
               </div>
 
-              <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+              <div className="pt-2">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex w-full items-center justify-center rounded-2xl bg-linear-to-r from-[#0a192f] to-cyan-700 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:from-[#0a192f] hover:to-[#61CE70] hover:text-[#0a192f] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex w-full items-center justify-center rounded-2xl border border-[#0a192f]/10 bg-linear-to-r from-[#0a192f] via-[#10233c] to-[#61CE70] px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_40px_-18px_rgba(10,25,47,0.7)] transition duration-300 hover:-translate-y-0.5 hover:from-[#0a192f] hover:via-[#17304d] hover:to-[#61CE70] hover:shadow-[0_22px_48px_-20px_rgba(97,206,112,0.55)] focus:ring-4 focus:ring-[#61CE70]/30 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                 >
                   {loading ? "Saving..." : submitLabel}
                 </button>

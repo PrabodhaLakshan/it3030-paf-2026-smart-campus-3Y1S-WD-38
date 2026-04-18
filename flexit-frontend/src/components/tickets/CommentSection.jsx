@@ -123,7 +123,7 @@ function CommentSection({ ticketId, comments = [], onRefresh }) {
     setError("");
 
     try {
-      await addComment(ticketId, {
+      const savedTicket = await addComment(ticketId, {
         userId: currentUserId,
         userName: currentUserName,
         text: formData.text.trim(),
@@ -137,7 +137,11 @@ function CommentSection({ ticketId, comments = [], onRefresh }) {
       }));
       clearSelectedImage();
 
-      await loadComments();
+      if (savedTicket?.comments) {
+        setTicketComments(normalizeComments(savedTicket.comments));
+      } else {
+        await loadComments();
+      }
 
       if (onRefresh) {
         await onRefresh();
@@ -159,9 +163,13 @@ function CommentSection({ ticketId, comments = [], onRefresh }) {
     setError("");
 
     try {
-      await deleteComment(ticketId, commentId, currentUserId, currentUserRole);
+      const updatedTicket = await deleteComment(ticketId, commentId, currentUserId, currentUserRole);
 
-      await loadComments();
+      if (updatedTicket?.comments) {
+        setTicketComments(normalizeComments(updatedTicket.comments));
+      } else {
+        await loadComments();
+      }
 
       if (onRefresh) {
         await onRefresh();
@@ -199,7 +207,7 @@ function CommentSection({ ticketId, comments = [], onRefresh }) {
     setError("");
 
     try {
-      await updateComment(
+      const updatedTicket = await updateComment(
         ticketId,
         commentId,
         {
@@ -214,7 +222,11 @@ function CommentSection({ ticketId, comments = [], onRefresh }) {
 
       handleCancelEdit();
 
-      await loadComments();
+      if (updatedTicket?.comments) {
+        setTicketComments(normalizeComments(updatedTicket.comments));
+      } else {
+        await loadComments();
+      }
 
       if (onRefresh) {
         await onRefresh();

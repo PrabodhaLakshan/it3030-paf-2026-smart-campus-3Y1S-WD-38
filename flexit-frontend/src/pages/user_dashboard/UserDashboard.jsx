@@ -2,14 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { deleteTicket, getAllTickets } from "../../api/ticketApi";
 import { getSessionUser } from "../../utils/sessionUser";
-import {
-  ArrowRight,
-  CheckCircle2,
-  CircleAlert,
-  Clock3,
-  Plus,
-  Ticket,
-} from "lucide-react";
 
 function UserDashboard() {
   const sessionUser = getSessionUser();
@@ -78,94 +70,25 @@ function UserDashboard() {
     return `${tickets.length} tickets`;
   }, [tickets.length]);
 
-  const dashboardSummary = useMemo(() => {
-    const openCount = tickets.filter((ticket) => (ticket.status || "OPEN") === "OPEN").length;
-    const rejectedCount = tickets.filter((ticket) => (ticket.status || "") === "REJECTED").length;
-    const approvedCount = tickets.filter((ticket) => (ticket.status || "") === "APPROVED").length;
-
-    return [
-      {
-        label: "Total tickets",
-        value: tickets.length,
-        icon: Ticket,
-        accent: "from-sky-500/15 to-cyan-400/10 text-sky-700",
-      },
-      {
-        label: "Open tickets",
-        value: openCount,
-        icon: Clock3,
-        accent: "from-amber-400/20 to-orange-300/10 text-amber-700",
-      },
-      {
-        label: "Approved",
-        value: approvedCount,
-        icon: CheckCircle2,
-        accent: "from-emerald-500/20 to-lime-300/10 text-emerald-700",
-      },
-      {
-        label: "Needs attention",
-        value: rejectedCount,
-        icon: CircleAlert,
-        accent: "from-rose-500/20 to-pink-300/10 text-rose-700",
-      },
-    ];
-  }, [tickets]);
-
   return (
-    <section className="mx-auto flex w-full max-w-[1120px] flex-col gap-4 pb-1">
-      <div className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-[linear-gradient(135deg,_rgba(10,25,47,0.98)_0%,_rgba(15,23,42,0.96)_52%,_rgba(97,206,112,0.82)_140%)] p-4 text-white shadow-[0_30px_80px_-55px_rgba(15,23,42,0.65)] sm:p-6">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-lg">
-            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-200">
-              User Dashboard
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[2.7rem]">
-              Welcome back, {sessionUser.userName || "User"}
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-              Create support tickets, track your requests, and keep an eye on what needs attention.
-            </p>
-          </div>
+    <section className="space-y-6">
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#61CE70]">User Dashboard</p>
+        <h1 className="mt-3 text-3xl font-semibold text-slate-900">Welcome, {sessionUser.userName || "User"}</h1>
+        <p className="mt-2 max-w-2xl text-sm text-slate-600">
+          Need help with an issue? Create a support ticket and our team will follow up.
+        </p>
+        <p className="mt-2 text-sm font-medium text-slate-500">{ticketCountLabel} in your account</p>
 
-          <div className="flex flex-wrap gap-3 lg:justify-end">
-            <Link
-              to="/user/tickets/create"
-              className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-[#0a192f] transition hover:bg-emerald-100"
-            >
-              <Plus size={18} />
-              Raise Ticket
-            </Link>
-            <Link
-              to="/my-bookings"
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
-            >
-              View Bookings
-              <ArrowRight size={18} />
-            </Link>
-          </div>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            to="/user/tickets/create"
+            className="inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-[#0a192f] to-cyan-700 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:from-[#0a192f] hover:to-emerald-500 hover:text-[#0a192f]"
+          >
+            Raise Ticket
+          </Link>
         </div>
       </div>
-
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {dashboardSummary.map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <div key={item.label} className="rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium text-slate-500">{item.label}</p>
-                  <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{item.value}</p>
-                  <p className="mt-2 text-sm text-slate-500">{item.label === "Total tickets" ? ticketCountLabel : "Live status summary"}</p>
-                </div>
-                <div className={`rounded-2xl bg-gradient-to-br p-3 ${item.accent}`}>
-                  <Icon size={22} />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </section>
 
       {message ? (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
@@ -179,28 +102,22 @@ function UserDashboard() {
         </div>
       ) : null}
 
-      <div className="rounded-[1.8rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Support activity</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">My Tickets</h2>
-          </div>
-          <p className="text-sm text-slate-500">{ticketCountLabel} in your account</p>
-        </div>
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-semibold text-slate-900">My Tickets</h2>
 
         {loading ? (
           <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">
             Loading your tickets...
           </div>
         ) : tickets.length ? (
-          <div className="mt-3 space-y-3">
+          <div className="mt-4 space-y-3">
             {tickets.map((ticket) => {
               const editable = canModifyTicket(ticket.status);
 
               return (
                 <div
                   key={ticket.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-[#61CE70]/30 hover:bg-white"
+                  className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>

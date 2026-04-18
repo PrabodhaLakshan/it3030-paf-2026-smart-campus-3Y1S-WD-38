@@ -41,7 +41,10 @@ function normalizeTicketList(payload) {
 }
 
 async function request(url, options = {}) {
-  const response = await fetch(url, options);
+  const response = await fetch(url, {
+    cache: "no-store",
+    ...options,
+  });
 
   if (response.status === 204) {
     return null;
