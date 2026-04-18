@@ -25,6 +25,9 @@ public class User {
     @NotBlank(message = "Password is required")
     private String passwordHash;
 
+    @Indexed(unique = true, sparse = true)
+    private String userCode;
+
     private UserRole role;
 
     private LocalDateTime createdAt;
@@ -70,6 +73,14 @@ public class User {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public String getUserCode() {
+        return userCode;
+    }
+
+    public void setUserCode(String userCode) {
+        this.userCode = userCode;
     }
 
     public UserRole getRole() {
