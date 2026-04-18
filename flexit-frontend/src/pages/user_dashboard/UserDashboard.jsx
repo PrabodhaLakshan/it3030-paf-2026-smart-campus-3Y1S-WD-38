@@ -112,32 +112,32 @@ function UserDashboard() {
   }, [tickets]);
 
   return (
-    <section className="space-y-6">
-      <div className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-[linear-gradient(135deg,_rgba(10,25,47,0.98)_0%,_rgba(15,23,42,0.96)_52%,_rgba(97,206,112,0.82)_140%)] p-6 text-white shadow-[0_30px_80px_-55px_rgba(15,23,42,0.65)] sm:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
+    <section className="mx-auto flex w-full max-w-[1120px] flex-col gap-4 pb-1">
+      <div className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-[linear-gradient(135deg,_rgba(10,25,47,0.98)_0%,_rgba(15,23,42,0.96)_52%,_rgba(97,206,112,0.82)_140%)] p-4 text-white shadow-[0_30px_80px_-55px_rgba(15,23,42,0.65)] sm:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-lg">
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-200">
               User Dashboard
             </p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[2.7rem]">
               Welcome back, {sessionUser.userName || "User"}
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
               Create support tickets, track your requests, and keep an eye on what needs attention.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 lg:justify-end">
             <Link
               to="/user/tickets/create"
-              className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-[#0a192f] transition hover:bg-emerald-100"
+              className="inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-[#0a192f] transition hover:bg-emerald-100"
             >
               <Plus size={18} />
               Raise Ticket
             </Link>
             <Link
               to="/my-bookings"
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
             >
               View Bookings
               <ArrowRight size={18} />
@@ -146,16 +146,16 @@ function UserDashboard() {
         </div>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {dashboardSummary.map((item) => {
           const Icon = item.icon;
 
           return (
-            <div key={item.label} className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+            <div key={item.label} className="rounded-[1.6rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-medium text-slate-500">{item.label}</p>
-                  <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{item.value}</p>
+                  <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">{item.value}</p>
                   <p className="mt-2 text-sm text-slate-500">{item.label === "Total tickets" ? ticketCountLabel : "Live status summary"}</p>
                 </div>
                 <div className={`rounded-2xl bg-gradient-to-br p-3 ${item.accent}`}>
@@ -179,7 +179,7 @@ function UserDashboard() {
         </div>
       ) : null}
 
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-[1.8rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Support activity</p>
@@ -193,7 +193,7 @@ function UserDashboard() {
             Loading your tickets...
           </div>
         ) : tickets.length ? (
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-3">
             {tickets.map((ticket) => {
               const editable = canModifyTicket(ticket.status);
 

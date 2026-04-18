@@ -33,27 +33,27 @@ const navigationItems = [
 
 function UserSidebar() {
     return (
-        <aside className="sticky top-6 hidden h-[calc(100vh-6rem)] w-80 shrink-0 overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 shadow-[0_30px_80px_-55px_rgba(15,23,42,0.75)] backdrop-blur lg:flex lg:flex-col">
-            <div className="border-b border-slate-200/80 px-5 py-5">
-                <div className="rounded-[1.75rem] bg-[linear-gradient(135deg,_#0f172a_0%,_#1e293b_45%,_#61CE70_140%)] p-5 text-white shadow-[0_24px_60px_-30px_rgba(15,23,42,0.65)]">
+        <aside className="hidden h-full w-[280px] shrink-0 overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 shadow-[0_30px_80px_-55px_rgba(15,23,42,0.75)] backdrop-blur lg:flex lg:flex-col">
+            <div className="border-b border-slate-200/80 px-4 py-4">
+                <div className="rounded-[1.5rem] bg-[linear-gradient(135deg,_#0f172a_0%,_#1e293b_45%,_#61CE70_140%)] p-4 text-white shadow-[0_24px_60px_-30px_rgba(15,23,42,0.65)]">
                     <div className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-200">
                         FlexIT Workspace
                     </div>
-                    <h2 className="mt-4 text-3xl font-semibold tracking-tight">
+                    <h2 className="mt-3 text-xl font-semibold tracking-tight xl:text-2xl">
                         User Dashboard
                     </h2>
-                    <p className="mt-2 text-sm leading-6 text-slate-300">
+                    <p className="mt-2 text-xs leading-6 text-slate-300 xl:text-sm">
                         Keep track of your tickets, requests, and resources in one place.
                     </p>
                 </div>
             </div>
 
-            <div className="flex flex-1 flex-col px-4 py-5">
+            <div className="flex flex-1 flex-col px-4 py-4">
                 <p className="px-3 text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
                     Navigation
                 </p>
 
-                <nav className="mt-4 space-y-2">
+                <nav className="mt-3 space-y-2">
                     {navigationItems.map((item) => {
                         const Icon = item.icon;
 
@@ -61,7 +61,7 @@ function UserSidebar() {
                             <NavLink key={item.label} to={item.to} className="block">
                                 {({ isActive }) => (
                                     <div
-                                        className={`group flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium transition-all duration-200 ${isActive
+                                        className={`group flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-sm font-medium transition-all duration-200 ${isActive
                                                 ? "border-slate-950 bg-slate-950 text-white shadow-[0_18px_35px_-20px_rgba(15,23,42,0.9)]"
                                                 : "border-transparent bg-white text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-950"
                                             }`}
@@ -85,8 +85,8 @@ function UserSidebar() {
                     })}
                 </nav>
 
-                <div className="mt-auto border-t border-slate-200/80 pt-5">
-                    <button className="flex w-full items-center justify-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 transition hover:border-rose-200 hover:bg-rose-100">
+                <div className="mt-auto border-t border-slate-200/80 pt-4">
+                    <button className="flex w-full items-center justify-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:border-rose-200 hover:bg-rose-100">
                         <LogOut size={20} />
                         <span>Logout</span>
                     </button>

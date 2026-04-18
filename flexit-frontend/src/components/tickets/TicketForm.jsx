@@ -164,175 +164,212 @@ function TicketForm({
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
-      <div className="overflow-hidden rounded-3xl border border-cyan-200/40 bg-white shadow-2xl">
-        <div className="border-b border-slate-100 bg-linear-to-r from-slate-950 via-slate-900 to-[#0a192f] px-6 py-8 text-white sm:px-10">
+    <div className="mx-auto w-full max-w-[1180px]">
+      <div className="overflow-hidden rounded-[2rem] border border-cyan-200/40 bg-white shadow-2xl">
+        <div className="border-b border-slate-100 bg-linear-to-r from-slate-950 via-slate-900 to-[#0a192f] px-5 py-6 text-white sm:px-8 sm:py-7">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#61CE70]">Ticket Desk</p>
-          <h2 className="mt-3 text-3xl font-semibold">{heading}</h2>
+          <h2 className="mt-3 text-2xl font-semibold sm:text-3xl">{heading}</h2>
           <p className="mt-2 max-w-2xl text-sm text-slate-300">{description}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 p-6 sm:p-10">
-          {success ? (
-            <div className="flex items-center gap-3 rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-sm">
-              {success}
-            </div>
-          ) : null}
-
-          {error ? (
-            <div className="flex items-center gap-3 rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800 shadow-sm">
-              {error}
-            </div>
-          ) : null}
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Asset / Facility</label>
-              <input
-                list="asset-facility-options"
-                name="assetFacility"
-                value={formData.assetFacility}
-                onChange={handleChange}
-                required
-                placeholder="Select or type asset/facility"
-                className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
-              />
-              <datalist id="asset-facility-options">
-                {assetFacilityOptions.map((option) => (
-                  <option key={option} value={option} />
-                ))}
-              </datalist>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Category</label>
-              <input
-                list="category-options"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                required
-                placeholder="Select or type category"
-                className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
-              />
-              <datalist id="category-options">
-                {categoryOptions.map((option) => (
-                  <option key={option} value={option} />
-                ))}
-              </datalist>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Location</label>
-              <input
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                required
-                placeholder="e.g. Building A, Floor 2, Room 203"
-                className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">Priority</label>
-              <select
-                name="priority"
-                value={formData.priority}
-                onChange={handleChange}
-                className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
-              >
-                <option value="LOW">LOW</option>
-                <option value="MEDIUM">MEDIUM</option>
-                <option value="HIGH">HIGH</option>
-              </select>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-medium text-slate-700">Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={5}
-                placeholder="Describe what is happening, when it started, and any context that helps"
-                className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
-              />
-            </div>
-
-            {shouldShowReporterFields ? (
-              <>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-700">Reported by user ID</label>
-                  <input
-                    name="reportedByUserId"
-                    value={formData.reportedByUserId}
-                    onChange={handleChange}
-                    placeholder="User identifier"
-                    className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="mb-2 block text-sm font-medium text-slate-700">Reported by name</label>
-                  <input
-                    name="reportedByUserName"
-                    value={formData.reportedByUserName}
-                    onChange={handleChange}
-                    placeholder="Display name"
-                    className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
-                  />
-                </div>
-              </>
-            ) : (
-              <div className="md:col-span-2 rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-slate-700">
-                <p className="font-semibold text-slate-900">Submitting as</p>
-                <p className="mt-1">{currentUserName || "Unknown user"}</p>
-                <p className="text-xs text-slate-600">{currentUserId || "No user ID"}</p>
+        <form onSubmit={handleSubmit} className="grid gap-0 lg:grid-cols-[minmax(0,1.1fr)_320px]">
+          <div className="space-y-6 p-5 sm:p-8">
+            {success ? (
+              <div className="flex items-center gap-3 rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-sm">
+                {success}
               </div>
-            )}
+            ) : null}
 
-            <div className="md:col-span-2">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <label className="block text-sm font-medium text-slate-700">Attachments</label>
-                <span className="text-xs text-slate-500">Up to 3 images</span>
+            {error ? (
+              <div className="flex items-center gap-3 rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800 shadow-sm">
+                {error}
+              </div>
+            ) : null}
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Asset / Facility</label>
+                <input
+                  list="asset-facility-options"
+                  name="assetFacility"
+                  value={formData.assetFacility}
+                  onChange={handleChange}
+                  required
+                  placeholder="Select or type asset/facility"
+                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                />
+                <datalist id="asset-facility-options">
+                  {assetFacilityOptions.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
               </div>
 
-              {allowAttachmentUpload ? (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Category</label>
+                <input
+                  list="category-options"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  required
+                  placeholder="Select or type category"
+                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                />
+                <datalist id="category-options">
+                  {categoryOptions.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Location</label>
+                <input
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g. Building A, Floor 2, Room 203"
+                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Priority</label>
+                <select
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleChange}
+                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                >
+                  <option value="LOW">LOW</option>
+                  <option value="MEDIUM">MEDIUM</option>
+                  <option value="HIGH">HIGH</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-medium text-slate-700">Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={6}
+                  placeholder="Describe what is happening, when it started, and any context that helps"
+                  className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                />
+              </div>
+
+              {shouldShowReporterFields ? (
                 <>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleAttachmentChange}
-                    className="mt-2 w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition file:mr-4 file:rounded-xl file:border-0 file:bg-[#0a192f] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-cyan-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-200/40"
-                  />
-                  <p className="mt-2 text-xs text-slate-600">Attach up to 3 images only. Selected images are sent with the ticket as multipart data.</p>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-700">Reported by user ID</label>
+                    <input
+                      name="reportedByUserId"
+                      value={formData.reportedByUserId}
+                      onChange={handleChange}
+                      placeholder="User identifier"
+                      className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-700">Reported by name</label>
+                    <input
+                      name="reportedByUserName"
+                      value={formData.reportedByUserName}
+                      onChange={handleChange}
+                      placeholder="Display name"
+                      className="w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-400 focus:bg-white focus:ring-4 focus:ring-cyan-200/40"
+                    />
+                  </div>
                 </>
               ) : (
-                <p className="mt-2 text-xs text-slate-600">Attachments are not editable in this view.</p>
+                <div className="md:col-span-2 rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-slate-700">
+                  <p className="font-semibold text-slate-900">Submitting as</p>
+                  <p className="mt-1">{currentUserName || "Unknown user"}</p>
+                  <p className="text-xs text-slate-600">{currentUserId || "No user ID"}</p>
+                </div>
               )}
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                {(formData.attachmentUrls || []).map((imageUrl, index) => (
-                  <div key={`${imageUrl.slice(0, 24)}-${index}`} className="overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-sm">
-                    <img src={imageUrl} alt={`Attachment ${index + 1}`} className="h-32 w-full object-cover" />
-                    <div className="px-3 py-2 text-xs font-medium text-slate-700">Image {index + 1}</div>
-                  </div>
-                ))}
+              <div className="md:col-span-2">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <label className="block text-sm font-medium text-slate-700">Attachments</label>
+                  <span className="text-xs text-slate-500">Up to 3 images</span>
+                </div>
+
+                {allowAttachmentUpload ? (
+                  <>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleAttachmentChange}
+                      className="mt-2 w-full rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-slate-900 outline-none transition file:mr-4 file:rounded-xl file:border-0 file:bg-[#0a192f] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-cyan-300 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-200/40"
+                    />
+                    <p className="mt-2 text-xs text-slate-600">Attach up to 3 images only. Selected images are sent with the ticket as multipart data.</p>
+                  </>
+                ) : (
+                  <p className="mt-2 text-xs text-slate-600">Attachments are not editable in this view.</p>
+                )}
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {(formData.attachmentUrls || []).map((imageUrl, index) => (
+                    <div key={`${imageUrl.slice(0, 24)}-${index}`} className="overflow-hidden rounded-2xl border border-cyan-200 bg-white shadow-sm">
+                      <img src={imageUrl} alt={`Attachment ${index + 1}`} className="h-28 w-full object-cover" />
+                      <div className="px-3 py-2 text-xs font-medium text-slate-700">Image {index + 1}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-6">
-            <button
-              type="submit"
-              disabled={loading}
-              className="inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-[#0a192f] to-cyan-700 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:from-[#0a192f] hover:to-[#61CE70] hover:text-[#0a192f] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? "Saving..." : submitLabel}
-            </button>
-          </div>
+          <aside className="border-t border-slate-100 bg-slate-50/70 p-5 lg:border-l lg:border-t-0 lg:p-6">
+            <div className="space-y-4 lg:sticky lg:top-6">
+              <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#61CE70]">Ticket preview</p>
+                <h3 className="mt-2 text-lg font-semibold text-slate-900">{generatedTitle}</h3>
+                <p className="mt-2 text-sm text-slate-600">This title updates automatically from the selected asset and category.</p>
+              </div>
+
+              <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Submitting as</p>
+                {shouldShowReporterFields ? (
+                  <div className="mt-3 space-y-1 text-sm text-slate-700">
+                    <p className="font-semibold text-slate-900">Manual reporter fields enabled</p>
+                    <p>ID: {formData.reportedByUserId || "—"}</p>
+                    <p>Name: {formData.reportedByUserName || "—"}</p>
+                  </div>
+                ) : (
+                  <div className="mt-3 space-y-1 text-sm text-slate-700">
+                    <p className="font-semibold text-slate-900">{currentUserName || "Unknown user"}</p>
+                    <p className="text-xs text-slate-500">{currentUserId || "No user ID"}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Tips</p>
+                <ul className="mt-3 space-y-3 text-sm text-slate-600">
+                  <li>Use a clear location so the support team can find the issue faster.</li>
+                  <li>Add 1-3 images if the issue is visual or hardware-related.</li>
+                  <li>Scroll down after filling the top fields to review attachments and submit.</li>
+                </ul>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex w-full items-center justify-center rounded-2xl bg-linear-to-r from-[#0a192f] to-cyan-700 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:from-[#0a192f] hover:to-[#61CE70] hover:text-[#0a192f] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? "Saving..." : submitLabel}
+                </button>
+              </div>
+            </div>
+          </aside>
         </form>
       </div>
     </div>
