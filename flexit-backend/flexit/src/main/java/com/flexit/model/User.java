@@ -25,6 +25,8 @@ public class User {
     @NotBlank(message = "Password is required")
     private String passwordHash;
 
+    private UserRole role;
+
     private LocalDateTime createdAt;
 
     public User() {
@@ -68,6 +70,14 @@ public class User {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     public LocalDateTime getCreatedAt() {

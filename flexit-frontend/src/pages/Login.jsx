@@ -56,7 +56,11 @@ function Login() {
       });
 
       localStorage.setItem('flexitUser', JSON.stringify(data));
-      navigate('/resources');
+      if (data.role === 'ADMIN') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/resources');
+      }
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {

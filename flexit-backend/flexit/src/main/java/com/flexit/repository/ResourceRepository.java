@@ -2,19 +2,11 @@ package com.flexit.repository;
 
 import com.flexit.model.Resource;
 import com.flexit.model.ResourceType;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface ResourceRepository {
-
-    Resource save(Resource resource);
-
-    List<Resource> findAll();
-
-    Optional<Resource> findById(String id);
-
-    void delete(Resource resource);
+public interface ResourceRepository extends MongoRepository<Resource, String> {
 
     List<Resource> findByType(ResourceType type);
 
