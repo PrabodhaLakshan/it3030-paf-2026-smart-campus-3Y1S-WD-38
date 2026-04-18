@@ -1,0 +1,28 @@
+.admin-dashboard {
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(135deg, #f6f9fc 0%, #e5edf5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.admin-dashboard-card {
+  width: min(720px, 100%);
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(18, 44, 72, 0.12);
+  padding: 2rem;
+  text-align: center;
+}
+
+.admin-dashboard-card h1 {
+  margin: 0 0 0.75rem;
+  color: #11355a;
+}
+
+.admin-dashboard-card p {
+  margin: 0;
+  color: #4e657f;
+  font-size: 1.05rem;
+}

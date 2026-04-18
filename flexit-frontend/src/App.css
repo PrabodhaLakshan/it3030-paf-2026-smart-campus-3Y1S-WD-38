@@ -10,7 +10,7 @@
   margin-bottom: 2rem;
 }
 
-form {
+.legacy-app form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -20,9 +20,9 @@ form {
   background-color: #1a1a1a;
 }
 
-input,
-select,
-textarea {
+.legacy-app input,
+.legacy-app select,
+.legacy-app textarea {
   padding: 0.75rem;
   border: 1px solid #444;
   border-radius: 4px;
@@ -32,20 +32,20 @@ textarea {
   font-size: 1rem;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+.legacy-app input:focus,
+.legacy-app select:focus,
+.legacy-app textarea:focus {
   outline: none;
   border-color: #646cff;
   box-shadow: 0 0 5px rgba(100, 108, 255, 0.3);
 }
 
-textarea {
+.legacy-app textarea {
   resize: vertical;
   min-height: 100px;
 }
 
-button {
+.legacy-app button {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   background-color: #646cff;
@@ -57,39 +57,40 @@ button {
   margin-top: 1rem;
 }
 
-button:hover {
+.legacy-app button:hover {
   background-color: #5a5fd8;
 }
 
-button:active {
+.legacy-app button:active {
   transform: scale(0.98);
 }
 
 @media (prefers-color-scheme: light) {
-  form {
+  .legacy-app form {
     background-color: #f9f9f9;
     border-color: #ddd;
   }
 
-  input,
-  select,
-  textarea {
+  .legacy-app input,
+  .legacy-app select,
+  .legacy-app textarea {
     background-color: #fff;
     color: #213547;
     border-color: #ddd;
   }
 
-  input:focus,
-  select:focus,
-  textarea:focus {
+  .legacy-app input:focus,
+  .legacy-app select:focus,
+  .legacy-app textarea:focus {
     border-color: #646cff;
   }
 
-  button {
+  .legacy-app button {
     background-color: #646cff;
   }
 
-  button:hover {
+  .legacy-app button:hover {
     background-color: #5a5fd8;
   }
 }
+

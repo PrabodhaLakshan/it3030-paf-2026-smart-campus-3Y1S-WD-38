@@ -9,5 +9,4 @@ public class FlexitApplication {
     public static void main(String[] args) {
         SpringApplication.run(FlexitApplication.class, args);
     }
-
 }
