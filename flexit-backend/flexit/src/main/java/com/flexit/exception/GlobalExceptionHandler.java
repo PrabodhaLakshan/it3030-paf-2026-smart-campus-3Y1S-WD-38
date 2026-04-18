@@ -43,26 +43,26 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, Object>> handleMissingOrInvalidBody(HttpMessageNotReadableException ex) {
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleUserAlreadyExists(UserAlreadyExistsException ex) {
         Map<String, Object> error = new HashMap<>();
         error.put("timestamp", LocalDateTime.now());
-        error.put("status", 400);
-        error.put("error", "Bad Request");
+        error.put("status", 409);
+        error.put("error", "Conflict");
+        error.put("message", ex.getMessage());
 
-        error.put("message", "Request body is missing or malformed JSON.");
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(MissingServletRequestPartException.class)
-    public ResponseEntity<Map<String, Object>> handleMissingRequestPart(MissingServletRequestPartException ex) {
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException ex) {
         Map<String, Object> error = new HashMap<>();
         error.put("timestamp", LocalDateTime.now());
-        error.put("status", 400);
-        error.put("error", "Bad Request");
-        error.put("message", "Missing required multipart part: " + ex.getRequestPartName());
+        error.put("status", 401);
+        error.put("error", "Unauthorized");
+        error.put("message", ex.getMessage());
 
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(Exception.class)
