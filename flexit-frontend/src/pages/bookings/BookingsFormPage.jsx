@@ -338,10 +338,7 @@ function BookingsFormPage() {
               className="w-full cursor-not-allowed rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-700 outline-none"
               required
             />
-            <p className="mt-2 text-xs text-slate-500">
-              This field is filled automatically from the logged-in user's
-              `userCode`.
-            </p>
+             
           </div>
 
           <div>
@@ -369,10 +366,7 @@ function BookingsFormPage() {
                 </option>
               ))}
             </select>
-            <p className="mt-2 text-xs text-slate-500">
-              Newly added active resources will appear here by their
-              `resourceCode`.
-            </p>
+            
           </div>
 
           <div>
