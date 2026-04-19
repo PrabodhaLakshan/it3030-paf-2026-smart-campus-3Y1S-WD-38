@@ -12,6 +12,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import jsPDF from "jspdf";
 import { getMyBookings, cancelBooking } from "../../api/bookingApi";
 
 const getStoredUserCode = () => {
@@ -92,6 +93,165 @@ function MyBookingsPage() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const handleDownloadSlip = (booking) => {
+    try {
+      const doc = new jsPDF("p", "mm", "a4");
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      // White background
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, pageWidth, pageHeight, "F");
+
+      // Header black
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, pageWidth, 34, "F");
+
+      // Green accent line
+      doc.setFillColor(34, 197, 94);
+      doc.rect(0, 34, pageWidth, 4, "F");
+
+      // Logo-style icon
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(14, 8, 22, 14, 4, 4, "F");
+      doc.setTextColor(34, 197, 94);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(15);
+      doc.text("F", 25, 17.5, { align: "center" });
+
+      // Brand
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.text("FLEXIT", 42, 15);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text("Smart Campus Booking Receipt", 42, 22);
+
+      // Title
+      doc.setTextColor(15, 23, 42);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("Approved Booking Slip", 14, 52);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.text(
+        "This document confirms the approved booking details from the Flexit system.",
+        14,
+        59
+      );
+
+      // Status badge
+      doc.setFillColor(220, 252, 231);
+      doc.roundedRect(150, 46, 32, 10, 5, 5, "F");
+      doc.setTextColor(22, 101, 52);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text(String(booking.status || "APPROVED"), 166, 52.5, {
+        align: "center",
+      });
+
+      let y = 72;
+
+      const drawInfoCard = (label, value, x, width) => {
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(x, y, width, 24, 5, 5, "F");
+
+        doc.setTextColor(34, 197, 94);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8.5);
+        doc.text(label.toUpperCase(), x + 4, y + 7);
+
+        doc.setTextColor(51, 65, 85);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+
+        const safeValue =
+          value !== undefined && value !== null && String(value).trim() !== ""
+            ? String(value)
+            : "-";
+
+        const lines = doc.splitTextToSize(safeValue, width - 8);
+        doc.text(lines, x + 4, y + 15);
+      };
+
+      drawInfoCard("Booking ID", booking.id, 14, 88);
+      drawInfoCard("User Code", booking.userId, 108, 88);
+      y += 30;
+
+      drawInfoCard("Resource Code", booking.resourceId, 14, 88);
+      drawInfoCard("Expected Attendees", booking.expectedAttendees, 108, 88);
+      y += 30;
+
+      drawInfoCard("Start Time", formatDateTime(booking.startTime), 14, 88);
+      drawInfoCard("End Time", formatDateTime(booking.endTime), 108, 88);
+      y += 34;
+
+      const purposeText =
+        booking.purpose && String(booking.purpose).trim() !== ""
+          ? String(booking.purpose)
+          : "-";
+
+      const purposeLines = doc.splitTextToSize(purposeText, 170);
+      const purposeHeight = Math.max(28, 14 + purposeLines.length * 6);
+
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(14, y, 182, purposeHeight, 5, 5, "F");
+
+      doc.setTextColor(34, 197, 94);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.text("PURPOSE", 18, y + 8);
+
+      doc.setTextColor(51, 65, 85);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.text(purposeLines, 18, y + 16);
+
+      y += purposeHeight + 10;
+
+      doc.setFillColor(240, 253, 244);
+      doc.roundedRect(14, y, 182, 24, 5, 5, "F");
+      doc.setTextColor(21, 128, 61);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("Booking Confirmation", 18, y + 9);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      doc.text(
+        "Please keep this PDF as proof of your approved booking request.",
+        18,
+        y + 17
+      );
+
+      // Footer
+      doc.setDrawColor(226, 232, 240);
+      doc.line(14, 276, 196, 276);
+
+      doc.setTextColor(100, 116, 139);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text("Generated from Flexit Booking Management System", 14, 283);
+
+      doc.text(
+        `Downloaded on: ${new Date().toLocaleString()}`,
+        196,
+        283,
+        { align: "right" }
+      );
+
+      doc.save(`flexit-booking-slip-${booking.id}.pdf`);
+      showToast("success", "Booking PDF downloaded successfully");
+    } catch (error) {
+      console.error("Failed to download booking slip:", error);
+      showToast("error", "Failed to download booking slip");
+    }
   };
 
   const fetchMyBookings = async () => {
@@ -423,16 +583,23 @@ function MyBookingsPage() {
                 </div>
 
                 <div className="flex min-w-[170px] flex-col gap-3">
-                  {booking.status === "APPROVED" && (
-                    <button
-                      onClick={() => openCancelModal(booking)}
-                      className="rounded-2xl bg-red-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-600"
-                    >
-                      Cancel Booking
-                    </button>
-                  )}
+                  {booking.status === "APPROVED" ? (
+                    <>
+                      <button
+                        onClick={() => handleDownloadSlip(booking)}
+                        className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+                      >
+                        Download PDF
+                      </button>
 
-                  {booking.status !== "APPROVED" && (
+                      <button
+                        onClick={() => openCancelModal(booking)}
+                        className="rounded-2xl bg-red-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-600"
+                      >
+                        Cancel Booking
+                      </button>
+                    </>
+                  ) : (
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
                       No actions available
                     </div>
