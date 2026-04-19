@@ -132,6 +132,7 @@
   margin: 0.95rem auto 0.95rem;
   font-size: clamp(1.8rem, 4vw, 3rem);
   line-height: 1.12;
+  font-weight: 900;
   color: #0a2540;
   background: linear-gradient(120deg, #0a2540 0%, #1f3fb8 52%, #007d7a 100%);
   -webkit-background-clip: text;
@@ -197,6 +198,7 @@
   margin-top: 0;
   color: #0d5f35;
   font-size: 1.75rem;
+  font-weight: 900;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -252,6 +254,7 @@
 .about-grid h3 {
   margin: 0 0 0.45rem;
   color: #0f6d3e;
+  font-weight: 800;
 }
 
 .about-grid p {
@@ -262,8 +265,11 @@
 
 .services-section {
   margin-top: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(243, 240, 255, 0.88));
-  border: 1px solid rgba(10, 37, 64, 0.1);
+  background:
+    radial-gradient(circle at 12% 20%, rgba(129, 196, 255, 0.22), transparent 40%),
+    radial-gradient(circle at 88% 16%, rgba(105, 171, 255, 0.2), transparent 38%),
+    linear-gradient(135deg, rgba(246, 251, 255, 0.92), rgba(232, 243, 255, 0.9));
+  border: 1px solid rgba(30, 86, 163, 0.18);
   border-radius: 0;
   padding: 2rem;
   animation: rise-up 0.7s ease;
@@ -271,8 +277,9 @@
 
 .services-section h2 {
   margin-top: 0;
-  color: #0a2540;
+  color: #134a8f;
   font-size: 1.75rem;
+  font-weight: 900;
   text-align: center;
 }
 
@@ -285,8 +292,8 @@
 }
 
 .services-grid article {
-  background: linear-gradient(145deg, #ffffff, #f4faff);
-  border: 1px solid rgba(10, 37, 64, 0.12);
+  background: linear-gradient(145deg, #f8fbff, #e8f3ff);
+  border: 1px solid rgba(33, 99, 184, 0.2);
   border-radius: 14px;
   padding: 1.2rem;
   transition: transform 0.22s ease, box-shadow 0.22s ease;
@@ -295,25 +302,26 @@
 
 .services-grid article:hover {
   transform: translateY(-3px);
-  box-shadow: 0 14px 28px rgba(20, 42, 88, 0.12);
+  box-shadow: 0 14px 28px rgba(21, 78, 148, 0.2);
 }
 
 .services-grid article:nth-child(1) {
-  border-left: 4px solid #00a896;
+  border-left: 4px solid #1f66ff;
 }
 
 .services-grid article:nth-child(2) {
-  border-left: 4px solid #2f67ff;
+  border-left: 4px solid #00a3ff;
 }
 
 .services-grid h3 {
   margin: 0 0 0.45rem;
-  color: #0a2540;
+  color: #0f4e9a;
+  font-weight: 800;
 }
 
 .services-grid p {
   margin: 0;
-  color: #36516f;
+  color: #2b568a;
   line-height: 1.6;
 }
 
