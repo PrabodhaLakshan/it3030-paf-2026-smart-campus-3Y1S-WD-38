@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080/api/tickets";
+const BASE_URL = "http://localhost:8081/api/tickets";
 
 function normalizeAttachmentUrls(ticket) {
   const candidates = [
@@ -85,7 +85,7 @@ export function getAllTickets() {
 }
 
 export function getTechnicians() {
-  return request("http://localhost:8080/api/technicians");
+  return request("http://localhost:8081/api/technicians");
 }
 
 export function getTicketById(id) {
