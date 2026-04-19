@@ -16,9 +16,14 @@ const navigationItems = [
         label: "Dashboard",
         icon: LayoutDashboard,
     },
+     {
+        to: "/user/resources",
+        label: "Resources",
+        icon: Layers,
+    },
     {
-        to: "/user/tickets/create",
-        label: "Raise Ticket",
+        to: "/book-resource",
+        label: "Book Resource",
         icon: PlusCircle,
     },
     {
@@ -27,10 +32,12 @@ const navigationItems = [
         icon: ClipboardList,
     },
     {
-        to: "/user/resources",
-        label: "Resources",
-        icon: Layers,
+        to: "/user/tickets/create",
+        label: "Raise Ticket",
+        icon: PlusCircle,
     },
+    
+   
 ];
 
 function UserSidebar() {
