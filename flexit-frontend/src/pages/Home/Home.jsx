@@ -9,7 +9,7 @@ function Home() {
 
       <main className="landing-main">
         <section className="hero-section">
-          <p className="hero-tag">Smart Resource Management Platform</p>
+          <p className="hero-tag">FlexIt - Smart Campus Hub</p>
           <h1>Book Campus Resources and Raise Tickets from One Place</h1>
           <p className="hero-subtext">
             This system allows students and staff to book campus resources such as lecture halls, labs,
@@ -37,6 +37,26 @@ function Home() {
             <article>
               <h3>Value</h3>
               <p>Speed, clarity, and accountability across all facility and technical processes.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="services" className="services-section">
+          <h2>Services</h2>
+          <div className="services-grid">
+            <article>
+              <h3>Booking</h3>
+              <p>
+                Reserve campus resources like labs, halls, and meeting rooms with a clear and organized
+                booking flow.
+              </p>
+            </article>
+            <article>
+              <h3>Raise Technical Issue</h3>
+              <p>
+                Report damaged resources or technical problems quickly and track each issue until it is
+                resolved.
+              </p>
             </article>
           </div>
         </section>

@@ -17,6 +17,7 @@ function Header() {
 
 			<nav className="home-header__nav" aria-label="Main navigation">
 				<a href="#about-us">About Us</a>
+				<a href="#services">Services</a>
 				<a href="#contact-us">Contact Us</a>
 			</nav>
 
