@@ -59,7 +59,7 @@ export function getSessionUser() {
   }
 
   const userId = firstNonEmpty(userIdCandidates);
-  const userName = firstNonEmpty([params.get("userName"), merged.userName, merged.name]);
+  const userName = firstNonEmpty([params.get("userName"), merged.userName, merged.name, merged.fullName]);
 
   return {
     role,

@@ -13,7 +13,6 @@ import {
   UserRound,
   XCircle,
 } from "lucide-react";
-import UserSidebar from "../../components/user_sidebar/UserSidebar";
 //import { getMyBookings } from "../../api/bookingApi";
 
 const STATUS_STYLES = {
@@ -133,11 +132,7 @@ function UserDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(97,206,112,0.18),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(14,165,233,0.18),_transparent_25%),linear-gradient(180deg,_#f8fafc_0%,_#eef6f2_100%)]">
-      <div className="mx-auto flex min-h-screen max-w-[1600px] gap-6 px-4 py-4 sm:px-6">
-        <UserSidebar />
-
-        <main className="flex-1 rounded-[2rem] border border-white/70 bg-white/70 p-5 shadow-[0_30px_80px_-50px_rgba(15,23,42,0.65)] backdrop-blur xl:p-8">
+    <>
           <div className="grid gap-6 xl:grid-cols-[1.5fr_0.9fr]">
             <section className="overflow-hidden rounded-[2rem] bg-slate-950 px-6 py-7 text-white shadow-[0_30px_60px_-40px_rgba(15,23,42,0.9)] sm:px-8">
               <div className="flex flex-wrap items-center justify-between gap-4">
@@ -208,6 +203,13 @@ function UserDashboardPage() {
                       className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-emerald-50"
                     >
                       Book now
+                      <ArrowRight size={16} />
+                    </Link>
+                    <Link
+                      to="/user/tickets/create"
+                      className="inline-flex items-center gap-2 rounded-full bg-sky-500 text-white px-4 py-2 text-sm font-semibold transition hover:bg-sky-600 shadow-md"
+                    >
+                      Raise Ticket
                       <ArrowRight size={16} />
                     </Link>
                     <Link
@@ -413,6 +415,13 @@ function UserDashboardPage() {
                       <ArrowRight size={16} />
                     </Link>
                     <Link
+                      to="/user/tickets/create"
+                      className="flex items-center justify-between rounded-2xl bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-800 transition hover:bg-sky-100"
+                    >
+                      Raise a new ticket
+                      <ArrowRight size={16} />
+                    </Link>
+                    <Link
                       to="/my-bookings"
                       className="flex items-center justify-between rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-200"
                     >
@@ -424,9 +433,7 @@ function UserDashboardPage() {
               </div>
             </div>
           </section>
-        </main>
-      </div>
-    </div>
+    </>
   );
 }
 

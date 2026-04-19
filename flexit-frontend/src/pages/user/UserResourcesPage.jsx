@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Layers, LoaderCircle } from "lucide-react";
-import UserSidebar from "../../components/user_sidebar/UserSidebar";
 import { getAllResources } from "../../api/resourceApi";
 
 const TYPES = ["ALL", "LAB", "LECTURE_HALL", "MEETING_ROOM", "PROJECTOR", "CAMERA"];
@@ -48,11 +47,7 @@ function UserResourcesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(97,206,112,0.18),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(14,165,233,0.18),_transparent_25%),linear-gradient(180deg,_#f8fafc_0%,_#eef6f2_100%)]">
-      <div className="mx-auto flex min-h-screen max-w-[1600px] gap-6 px-4 py-4 sm:px-6">
-        <UserSidebar />
-
-        <main className="flex-1 rounded-[2rem] border border-white/70 bg-white/70 p-5 shadow-[0_30px_80px_-50px_rgba(15,23,42,0.65)] backdrop-blur xl:p-8">
+    <>
           <div className="flex items-center gap-3 mb-8">
             <div className="p-3 bg-[linear-gradient(135deg,_#0f172a_0%,_#1e293b_45%,_#61CE70_140%)] rounded-2xl text-emerald-300 shadow-md">
               <Layers size={24} />
@@ -156,9 +151,7 @@ function UserResourcesPage() {
               ))}
             </div>
           )}
-        </main>
-      </div>
-    </div>
+    </>
   );
 }
 

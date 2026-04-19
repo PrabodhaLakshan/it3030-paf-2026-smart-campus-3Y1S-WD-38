@@ -66,8 +66,8 @@ function AppRoutes() {
         <Route element={<RequireAuth />}>
           <Route element={<RequireRole role="USER" />}>
             <Route element={<UserLayout />}>
-              <Route path="/user/dashboard" element={<UserDashboard />} />
-              <Route path="/user/dashboard-page" element={<UserDashboardPage />} />
+              <Route path="/user/dashboard" element={<UserDashboardPage />} />
+              <Route path="/user/tickets-dashboard" element={<UserDashboard />} />
               <Route path="/user/resources" element={<UserResourcesPage />} />
               <Route path="/book-resource" element={<BookingsFormPage />} />
               <Route path="/my-bookings" element={<MyBookingsPage />} />
