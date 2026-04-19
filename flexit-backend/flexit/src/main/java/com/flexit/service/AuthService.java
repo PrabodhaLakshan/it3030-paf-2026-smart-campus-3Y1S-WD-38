@@ -40,7 +40,8 @@ public class AuthService {
         this.userRepository = userRepository;
         this.mongoOperations = mongoOperations;
         this.passwordEncoder = new BCryptPasswordEncoder();
-        this.googleIdTokenVerifier = new GoogleIdTokenVerifier.Builder(
+        this.googleIdTokenVerifier = 
+        new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(),
                 GsonFactory.getDefaultInstance()
         )

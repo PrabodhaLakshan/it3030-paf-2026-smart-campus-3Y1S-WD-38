@@ -15,7 +15,7 @@ import TicketDetailsPage from "../pages/tickets/TicketDetailsPage";
 import EditTicketPage from "../pages/tickets/EditTicketPage";
 import UserDashboard from "../pages/user_dashboard/UserDashboard";
 import TechnicianDashboard from "../pages/technician_dashboard/TechnicianDashboard";
-import LoginPage from "../pages/auth/LoginPage";
+import Login from "../pages/Login";
 import { getSessionUser, isAuthenticated } from "../utils/sessionUser";
 
 function RequireAuth() {
@@ -45,12 +45,12 @@ function RequireRole({ role }) {
 }
 
 function AppRoutes() {
-  const landingPage = <Navigate to="/admin/dashboard?role=ADMIN&userId=ADMIN001&userName=FlexIT%20Admin" replace />;
+  const landingPage = <Navigate to="/login" replace />;
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/report-ticket" element={<PublicCreateTicketPage />} />
         <Route path="/report-ticket/manage/:id" element={<TicketEditPage />} />
         <Route path="/" element={landingPage} />

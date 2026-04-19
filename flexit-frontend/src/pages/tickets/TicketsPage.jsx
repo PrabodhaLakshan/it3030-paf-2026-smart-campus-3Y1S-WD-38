@@ -828,7 +828,7 @@ function TicketsPage() {
           <button
             type="button"
             onClick={handleGenerateResolvedReport}
-            className="inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-[#61CE70] to-cyan-300 px-5 py-3 text-sm font-semibold text-[#0a192f] shadow-lg transition hover:-translate-y-0.5 hover:from-white hover:to-[#c6ffd4]"
+            className="inline-flex items-center justify-center rounded-xl bg-linear-to-r from-[#61CE70] to-cyan-300 px-4 py-2 text-xs font-semibold text-[#0a192f] shadow-lg transition hover:-translate-y-0.5 hover:from-white hover:to-[#c6ffd4]"
           >
             Generate PDF Report
           </button>
@@ -929,25 +929,25 @@ function TicketsPage() {
       ) : filteredTickets.length ? (
         <div className="overflow-hidden rounded-3xl border border-cyan-200 bg-white shadow-lg">
           <div className="overflow-x-auto">
-            <table className="min-w-325 w-full text-sm">
+            <table className="w-full table-fixed text-sm">
               <thead className="bg-linear-to-r from-cyan-50 to-emerald-50">
                 <tr className="text-left text-slate-600">
-                  <th className="px-4 py-3 font-semibold">Ticket</th>
-                  <th className="px-4 py-3 font-semibold">Reporter</th>
-                  <th className="px-4 py-3 font-semibold">Asset / Facility</th>
-                  <th className="px-4 py-3 font-semibold">Category</th>
-                  <th className="px-4 py-3 font-semibold">Priority</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold">Assigned</th>
-                  <th className="px-4 py-3 font-semibold">Assign</th>
-                  <th className="px-4 py-3 font-semibold">Reject</th>
-                  <th className="px-4 py-3 font-semibold">Close</th>
+                  <th className="w-[15%] px-4 py-3 font-semibold">Ticket</th>
+                  <th className="w-[10%] px-4 py-3 font-semibold">Reporter</th>
+                  <th className="w-[9%] px-4 py-3 font-semibold">Asset / Facility</th>
+                  <th className="w-[8%] px-4 py-3 font-semibold">Category</th>
+                  <th className="w-[7%] px-4 py-3 font-semibold">Priority</th>
+                  <th className="w-[8%] px-4 py-3 font-semibold">Status</th>
+                  <th className="w-[10%] px-4 py-3 font-semibold">Assigned</th>
+                  <th className="w-[11%] px-4 py-3 font-semibold">Assign</th>
+                  <th className="w-[11%] px-4 py-3 font-semibold">Reject</th>
+                  <th className="w-[11%] px-4 py-3 font-semibold">Close</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTickets.map((ticket) => (
                   <tr key={ticket.id} className="border-t border-slate-100 align-top transition hover:bg-cyan-50/50">
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 break-words">
                       <p className="font-semibold text-slate-900">{ticket.title}</p>
                       <p className="text-xs text-slate-500 mt-1">ID: {ticket.id}</p>
                       <Link
@@ -957,19 +957,19 @@ function TicketsPage() {
                         View Image and Details
                       </Link>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 break-words">
                       <p className="text-slate-900">{ticket.reportedByUserName || "N/A"}</p>
                       <p className="text-xs text-slate-500 mt-1">{ticket.reportedByUserId || "No user ID"}</p>
                     </td>
-                    <td className="px-4 py-4 text-slate-800">
+                    <td className="px-4 py-4 break-words text-slate-800">
                       {ticket.assetFacility || "N/A"}
                     </td>
-                    <td className="px-4 py-4 text-slate-800">
+                    <td className="px-4 py-4 break-words text-slate-800">
                       {ticket.category || "N/A"}
                     </td>
                     <td className="px-4 py-4 font-medium text-slate-800">{ticket.priority || "MEDIUM"}</td>
                     <td className="px-4 py-4 font-medium text-slate-800">{ticket.status || "OPEN"}</td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 break-words">
                       <p className="text-slate-900">
                         {ticket.assignedTechnicianId
                           ? ticket.assignedTechnicianName
@@ -990,7 +990,7 @@ function TicketsPage() {
                             [ticket.id]: event.target.value,
                           }))
                         }
-                        className="w-44 rounded-xl border border-cyan-200 bg-white px-3 py-2 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200/40"
+                        className="w-full rounded-xl border border-cyan-200 bg-white px-3 py-2 outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200/40"
                       >
                         <option value="">Select Technician</option>
                         {technicianOptions.map((tech) => (
@@ -1008,13 +1008,13 @@ function TicketsPage() {
                           }))
                         }
                         placeholder="or type tech ID"
-                        className="w-44 rounded-xl border border-cyan-200 bg-white px-3 py-2 text-xs outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200/40"
+                        className="w-full rounded-xl border border-cyan-200 bg-white px-3 py-2 text-xs outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200/40"
                       />
                       <button
                         type="button"
                         onClick={() => handleAssign(ticket)}
                         disabled={isActionLoading(ticket.id)}
-                        className="block rounded-xl bg-linear-to-r from-[#0a192f] to-cyan-700 px-3 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:from-[#0a192f] hover:to-[#61CE70] hover:text-[#0a192f] disabled:opacity-60"
+                        className="block w-full rounded-xl bg-linear-to-r from-[#0a192f] to-cyan-700 px-3 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:from-[#0a192f] hover:to-[#61CE70] hover:text-[#0a192f] disabled:opacity-60"
                       >
                         {isActionLoading(ticket.id) ? "Working..." : "Assign"}
                       </button>
@@ -1030,13 +1030,13 @@ function TicketsPage() {
                           }))
                         }
                         placeholder="Reject reason (at least 5 words)"
-                        className="w-52 rounded-xl border border-rose-200 bg-rose-50/40 px-3 py-2 outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200/40"
+                        className="w-full rounded-xl border border-rose-200 bg-rose-50/40 px-3 py-2 outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200/40"
                       />
                       <button
                         type="button"
                         onClick={() => openReviewModal(ticket)}
                         disabled={isActionLoading(ticket.id)}
-                        className="block rounded-xl bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-60"
+                        className="block w-full rounded-xl bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:opacity-60"
                       >
                         {isActionLoading(ticket.id) ? "Working..." : "View & Reject"}
                       </button>
@@ -1052,13 +1052,13 @@ function TicketsPage() {
                           }))
                         }
                         placeholder="Close reason (at least 5 words)"
-                        className="w-52 rounded-xl border border-emerald-200 bg-emerald-50/40 px-3 py-2 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200/40"
+                        className="w-full rounded-xl border border-emerald-200 bg-emerald-50/40 px-3 py-2 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200/40"
                       />
                       <button
                         type="button"
                         onClick={() => handleClose(ticket)}
                         disabled={isActionLoading(ticket.id)}
-                        className="block rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                        className="block w-full rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
                       >
                         {isActionLoading(ticket.id) ? "Working..." : "Close"}
                       </button>

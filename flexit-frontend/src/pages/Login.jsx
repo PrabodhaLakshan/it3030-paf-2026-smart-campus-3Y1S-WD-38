@@ -32,12 +32,27 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   const handleAuthSuccess = (data) => {
-    localStorage.setItem('flexitUser', JSON.stringify(data));
-    if (data.role === 'ADMIN') {
-      navigate('/admin-dashboard');
-    } else {
-      navigate('/resources');
+    const role = (data?.role || '').toUpperCase();
+    const sessionUser = {
+      role,
+      userId: data?.userId || data?.id || '',
+      userName: data?.fullName || data?.userName || data?.name || '',
+      email: data?.email || '',
+    };
+
+    localStorage.setItem('flexitUser', JSON.stringify(sessionUser));
+
+    if (role === 'ADMIN') {
+      navigate('/admin/dashboard');
+      return;
     }
+
+    if (role === 'TECHNICIAN') {
+      navigate('/technician/dashboard');
+      return;
+    }
+
+    navigate('/user/dashboard');
   };
 
   const handleChange = (e) => {
