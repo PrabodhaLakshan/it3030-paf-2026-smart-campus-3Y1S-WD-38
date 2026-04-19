@@ -18,39 +18,7 @@ import EditTicketPage from "../pages/tickets/EditTicketPage";
 import UserDashboardPage from "../pages/user/UserDashboardPage";
 import UserDashboard from "../pages/user_dashboard/UserDashboard";
 import UserResourcesPage from "../pages/user/UserResourcesPage";
-import BookingsFormPage from "../pages/bookings/BookingsFormPage";
-import MyBookingsPage from "../pages/bookings/MyBookingsPage";
-import AdminBookingsPage from "../pages/bookings/AdminBookingsPage";
-
-import TechnicianDashboard from "../pages/technician_dashboard/TechnicianDashboard";
-import Login from "../pages/Login";
-import { getSessionUser, isAuthenticated } from "../utils/sessionUser";
-
-function RequireAuth() {
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <Outlet />;
-}
-
-function RequireRole({ role }) {
-  const sessionUser = getSessionUser();
-
-  if (sessionUser.role !== role) {
-    if (sessionUser.role === "TECHNICIAN") {
-      return <Navigate to="/technician/dashboard" replace />;
-    }
-
-    if (sessionUser.role === "ADMIN") {
-      return <Navigate to="/admin/dashboard" replace />;
-    }
-
-    return <Navigate to="/login" replace />;
-  }
-
-  return <Outlet />;
-}
+import UserResourceDetailPage from "../pages/user/UserResourceDetailPage";
 
 function AppRoutes() {
   const landingPage = <Navigate to="/login" replace />;
@@ -119,7 +87,10 @@ function AppRoutes() {
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* User Routes */}
+        <Route path="/user/dashboard" element={<UserDashboardPage />} />
+        <Route path="/user/resources" element={<UserResourcesPage />} />
+        <Route path="/user/resources/:id" element={<UserResourceDetailPage />} />
       </Routes>
     </BrowserRouter>
   );
