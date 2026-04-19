@@ -482,11 +482,14 @@ function Login() {
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page login-page">
       <div className="auth-container login-layout">
         
         {/* Left Side - Content */}
         <div className="auth-info-section">
+          <div className="logo-section">
+            <img src="/images/flexit_logo_Darkbg1.png" alt="Flexit Logo" className="flexit-logo" />
+          </div>
           <h1 className="info-title">Welcome to Flexit</h1>
           <p className="info-desc">
             Empower your workflow with our advanced resource management platform. Sign in to continue your journey.

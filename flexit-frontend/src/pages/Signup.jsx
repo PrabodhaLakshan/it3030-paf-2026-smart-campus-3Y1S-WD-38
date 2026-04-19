@@ -615,7 +615,7 @@ function Signup() {
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page signup-page">
       <div className="auth-container signup-layout">
         
         {/* Left Side - Signup Form */}
@@ -734,6 +734,9 @@ function Signup() {
 
         {/* Right Side - Content */}
         <div className="auth-info-section">
+          <div className="logo-section">
+            <img src="/images/flexit_logo_Darkbg1.png" alt="Flexit Logo" className="flexit-logo" />
+          </div>
           <h1 className="info-title">Join the Community</h1>
           <p className="info-desc">
             Start your journey with us today. Create an account to unlock premium features and tools.
