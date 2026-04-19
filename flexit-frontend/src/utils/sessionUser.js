@@ -60,11 +60,13 @@ export function getSessionUser() {
 
   const userId = firstNonEmpty(userIdCandidates);
   const userName = firstNonEmpty([params.get("userName"), merged.userName, merged.name, merged.fullName]);
+  const userEmail = firstNonEmpty([params.get("email"), merged.userEmail, merged.email]);
 
   return {
     role,
     userId,
     userName,
+    userEmail,
   };
 }
 

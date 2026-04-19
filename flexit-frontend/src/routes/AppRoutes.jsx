@@ -18,6 +18,7 @@ import EditTicketPage from "../pages/tickets/EditTicketPage";
 import UserDashboardPage from "../pages/user/UserDashboardPage";
 import UserDashboard from "../pages/user_dashboard/UserDashboard";
 import UserResourcesPage from "../pages/user/UserResourcesPage";
+import NotificationsPage from "../pages/user/NotificationsPage";
 import BookingsFormPage from "../pages/bookings/BookingsFormPage";
 import MyBookingsPage from "../pages/bookings/MyBookingsPage";
 import AdminBookingsPage from "../pages/bookings/AdminBookingsPage";
@@ -69,6 +70,7 @@ function AppRoutes() {
               <Route path="/user/dashboard" element={<UserDashboardPage />} />
               <Route path="/user/tickets-dashboard" element={<UserDashboard />} />
               <Route path="/user/resources" element={<UserResourcesPage />} />
+              <Route path="/user/notifications" element={<NotificationsPage />} />
               <Route path="/book-resource" element={<BookingsFormPage />} />
               <Route path="/my-bookings" element={<MyBookingsPage />} />
               

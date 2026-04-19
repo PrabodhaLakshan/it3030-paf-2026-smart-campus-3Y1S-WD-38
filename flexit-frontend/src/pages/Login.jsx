@@ -391,6 +391,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { googleLogin, loginUser } from '../api/authApi';
+import { addNotification } from '../utils/notifications';
 import './Auth.css';
 
 const getErrorMessage = (err) => {
@@ -422,13 +423,26 @@ function Login() {
 
   const handleAuthSuccess = (data) => {
     localStorage.setItem('flexitUser', JSON.stringify(data));
+
+    const resolvedRole = String(data.role || '').toUpperCase();
+    const resolvedUserId = data.userId || data.id;
+    const resolvedName = data.userName || data.fullName || data.name || 'User';
+
+    if (resolvedRole === 'USER' && resolvedUserId) {
+      addNotification({
+        userId: resolvedUserId,
+        title: `👋 Welcome back, ${resolvedName}!`,
+        message: 'You have successfully logged in to your FlexIT workspace.',
+        type: 'greeting',
+        actionUrl: '/user/dashboard',
+      });
+    }
+
     if (data.role === 'ADMIN') {
       navigate('/admin/dashboard');
     } else {
-      navigate('/user/resources');
+      navigate('/user/dashboard');
     }
-
-    navigate('/user/dashboard');
   };
 
   const handleChange = (e) => {
