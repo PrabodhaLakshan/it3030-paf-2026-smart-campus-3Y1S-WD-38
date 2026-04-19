@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { clearSessionUser, getSessionUser } from "../../utils/sessionUser";
 import {
   formatNotificationTime,
@@ -11,6 +11,7 @@ import {
 
 function UserNavbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const sessionUser = getSessionUser();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState(() =>
@@ -76,9 +77,16 @@ function UserNavbar() {
     navigate("/user/notifications");
   };
 
+  const navItems = [
+    { label: "About Us", path: "/user/dashboard" },
+    { label: "Services", path: "/user/resources" },
+    { label: "Contact Us", path: "/user/tickets/create" },
+    { label: "Updates", path: "/user/notifications" },
+  ];
+
   return (
     <nav className="w-full bg-white/70 backdrop-blur-xl border-b border-gray-200 shadow-[0_4px_30px_rgba(0,0,0,0.05)] relative z-50 transform-none">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-6 sm:px-10 lg:px-14 xl:px-20">
         <div className="flex justify-between items-center h-20">
 
           {/* Left Side: Logo */}
@@ -93,6 +101,25 @@ function UserNavbar() {
               className="h-12 w-auto sm:h-14"
             />
           </button>
+
+          <div className="hidden items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/85 p-2 shadow-[0_8px_22px_-18px_rgba(15,23,42,0.8)] lg:flex">
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => navigate(item.path)}
+                  className={`rounded-xl px-4 py-2 text-sm font-semibold tracking-tight transition-all duration-300 ${
+                    isActive
+                      ? "bg-[#0a192f] text-white shadow-md"
+                      : "text-slate-600 hover:bg-[#61CE70]/15 hover:text-slate-900"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
 
           {/* Right Side: Profile and Logout */}
           <div className="flex items-center gap-3 sm:gap-4">
