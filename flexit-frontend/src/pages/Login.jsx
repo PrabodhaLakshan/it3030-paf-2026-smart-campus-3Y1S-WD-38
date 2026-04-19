@@ -423,10 +423,12 @@ function Login() {
   const handleAuthSuccess = (data) => {
     localStorage.setItem('flexitUser', JSON.stringify(data));
     if (data.role === 'ADMIN') {
-      navigate('/admin-dashboard');
+      navigate('/admin/dashboard');
     } else {
-      navigate('/resources');
+      navigate('/user/resources');
     }
+
+    navigate('/user/dashboard');
   };
 
   const handleChange = (e) => {

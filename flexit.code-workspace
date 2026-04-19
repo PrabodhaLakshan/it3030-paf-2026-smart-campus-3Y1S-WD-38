@@ -1,0 +1,18 @@
+{
+  "folders": [
+    {
+      "name": "flexit-backend",
+      "path": "flexit-backend/flexit"
+    },
+    {
+      "name": "flexit-frontend",
+      "path": "flexit-frontend"
+    }
+  ],
+  "settings": {
+    "java.import.maven.enabled": true,
+    "java.project.importOnFirstTimeStartup": "automatic",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.debug.settings.forceBuildBeforeLaunch": true
+  }
+}

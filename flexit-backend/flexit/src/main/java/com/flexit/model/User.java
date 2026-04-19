@@ -22,7 +22,6 @@ public class User {
     @Indexed(unique = true)
     private String email;
 
-    @NotBlank(message = "Password is required")
     private String passwordHash;
 
     @Indexed(unique = true, sparse = true)

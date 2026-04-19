@@ -1,2 +1,68 @@
-/* App routing styles */
+.app {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.app h1 {
+  color: #646cff;
+  margin-bottom: 2rem;
+}
+
+.legacy-app form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #1a1a1a;
+}
+
+.legacy-app input,
+.legacy-app select,
+.legacy-app textarea {
+  padding: 0.75rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.legacy-app input:focus,
+.legacy-app select:focus,
+.legacy-app textarea:focus {
+  outline: none;
+  border-color: #646cff;
+  box-shadow: 0 0 5px rgba(100, 108, 255, 0.3);
+}
+
+.legacy-app textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.legacy-app button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  background-color: #646cff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 1rem;
+}
+
+.legacy-app button:hover {
+  background-color: #5a5fd8;
+}
+
+.legacy-app button:active {
+  transform: scale(0.98);
+}
+
 

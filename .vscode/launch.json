@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Run Flexit Backend (Spring Boot)",
+      "request": "launch",
+      "mainClass": "com.flexit.FlexitApplication",
+      "cwd": "${workspaceFolder}/flexit-backend/flexit",
+      "console": "integratedTerminal"
+    }
+  ]
+}

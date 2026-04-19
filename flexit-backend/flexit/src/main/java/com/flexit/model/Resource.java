@@ -36,11 +36,13 @@ public class Resource {
 
     private String description;
 
+    private String resourceCode;
+
     public Resource() {
     }
 
     public Resource(String id, String name, ResourceType type, Integer capacity, String location,
-                    String availabilityStart, String availabilityEnd, ResourceStatus status, String description) {
+            String availabilityStart, String availabilityEnd, ResourceStatus status, String description) {
         this.id = id;
         this.name = name;
         this.type = type;
@@ -123,5 +125,12 @@ public class Resource {
     public void setDescription(String description) {
         this.description = description;
     }
-}
 
+    public String getResourceCode() {
+        return resourceCode;
+    }
+
+    public void setResourceCode(String resourceCode) {
+        this.resourceCode = resourceCode;
+    }
+}

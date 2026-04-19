@@ -22,6 +22,20 @@ function Navbar() {
     navigate('/login');
   };
 
+  const handleTicketsNavigation = (event) => {
+    event.preventDefault();
+
+    const userId = (user?.userId || 'USER001').trim();
+    const userName = (user?.userName || user?.fullName || 'User').trim();
+    const params = new URLSearchParams({
+      role: 'USER',
+      userId,
+      userName,
+    });
+
+    navigate(`/user/dashboard?${params.toString()}`);
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -71,10 +85,7 @@ function Navbar() {
             <a
               href="#tickets"
               className="nav-link"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/');
-              }}
+              onClick={handleTicketsNavigation}
             >
               Tickets
             </a>

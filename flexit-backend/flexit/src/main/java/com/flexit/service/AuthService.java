@@ -40,7 +40,8 @@ public class AuthService {
         this.userRepository = userRepository;
         this.mongoOperations = mongoOperations;
         this.passwordEncoder = new BCryptPasswordEncoder();
-        this.googleIdTokenVerifier = new GoogleIdTokenVerifier.Builder(
+        this.googleIdTokenVerifier = 
+        new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(),
                 GsonFactory.getDefaultInstance()
         )
@@ -68,10 +69,11 @@ public class AuthService {
 
         return new AuthResponse(
                 "Account created successfully",
-            savedUser.getUserCode(),
+                savedUser.getId(),
+                savedUser.getUserCode(),
                 savedUser.getFullName(),
-            savedUser.getEmail(),
-            role.name()
+                savedUser.getEmail(),
+                role.name()
         );
     }
 
@@ -94,7 +96,8 @@ public class AuthService {
 
         return new AuthResponse(
                 "Login successful",
-            userCode,
+                user.getId(),
+                userCode,
                 user.getFullName(),
                 user.getEmail(),
                 role.name()
@@ -123,7 +126,8 @@ public class AuthService {
 
         return new AuthResponse(
                 "Google login successful",
-            userCode,
+                user.getId(),
+                userCode,
                 user.getFullName(),
                 user.getEmail(),
                 role.name()

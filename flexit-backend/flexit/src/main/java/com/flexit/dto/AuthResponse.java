@@ -4,6 +4,7 @@ public class AuthResponse {
 
     private String message;
     private String userId;
+    private String userCode;
     private String fullName;
     private String email;
     private String role;
@@ -11,9 +12,10 @@ public class AuthResponse {
     public AuthResponse() {
     }
 
-    public AuthResponse(String message, String userId, String fullName, String email, String role) {
+    public AuthResponse(String message, String userId, String userCode, String fullName, String email, String role) {
         this.message = message;
         this.userId = userId;
+        this.userCode = userCode;
         this.fullName = fullName;
         this.email = email;
         this.role = role;
@@ -33,6 +35,14 @@ public class AuthResponse {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getUserCode() {
+        return userCode;
+    }
+
+    public void setUserCode(String userCode) {
+        this.userCode = userCode;
     }
 
     public String getFullName() {
