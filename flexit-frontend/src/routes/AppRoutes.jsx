@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
+import Home from "../pages/Home/Home";
 import UserLayout from "../layouts/UserLayout";
 import TechnicianLayout from "../layouts/TechnicianLayout";
 import Login from "../pages/Login";
@@ -58,7 +59,7 @@ function RequireRole({ role }) {
 
 function HomeRedirect() {
   if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/Home" replace />;
   }
 
   const sessionUser = getSessionUser();
@@ -70,6 +71,7 @@ function AppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
+        <Route path="/Home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/report-ticket" element={<PublicCreateTicketPage />} />
