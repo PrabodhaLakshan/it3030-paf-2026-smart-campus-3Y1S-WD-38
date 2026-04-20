@@ -27,6 +27,10 @@ import MyBookingsPage from "../pages/bookings/MyBookingsPage";
 import AdminBookingsPage from "../pages/bookings/AdminBookingsPage";
 import { getSessionUser, isAuthenticated } from "../utils/sessionUser";
 
+import UpdateDetailsPage from "../pages/user/UpdateDetailsPage";
+import ChangePasswordPage from "../pages/user/ChangePasswordPage";
+
+
 function getDefaultRouteForRole(role) {
   if (role === "ADMIN") {
     return "/admin/dashboard";
@@ -76,6 +80,10 @@ function AppRoutes() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/report-ticket" element={<PublicCreateTicketPage />} />
         <Route path="/report-ticket/manage/:id" element={<TicketEditPage />} />
+
+
+        <Route path="/user/profile/update" element={<UpdateDetailsPage />} />
+              <Route path="/user/profile/change-password" element={<ChangePasswordPage />} />
 
         <Route element={<RequireAuth />}>
           <Route element={<RequireRole role="USER" />}>
