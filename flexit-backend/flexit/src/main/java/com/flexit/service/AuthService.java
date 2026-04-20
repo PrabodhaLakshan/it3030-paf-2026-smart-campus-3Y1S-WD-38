@@ -3,6 +3,8 @@ package com.flexit.service;
 import com.flexit.dto.AuthResponse;
 import com.flexit.dto.GoogleLoginRequest;
 import com.flexit.dto.LoginRequest;
+import com.flexit.dto.PasswordChangeRequest;
+import com.flexit.dto.PasswordStatusResponse;
 import com.flexit.dto.SignupRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -73,7 +75,8 @@ public class AuthService {
                 savedUser.getUserCode(),
                 savedUser.getFullName(),
                 savedUser.getEmail(),
-                role.name()
+            role.name(),
+            true
         );
     }
 
@@ -100,7 +103,8 @@ public class AuthService {
                 userCode,
                 user.getFullName(),
                 user.getEmail(),
-                role.name()
+            role.name(),
+            true
         );
     }
 
@@ -130,7 +134,53 @@ public class AuthService {
                 userCode,
                 user.getFullName(),
                 user.getEmail(),
-                role.name()
+            role.name(),
+            user.getPasswordHash() != null && !user.getPasswordHash().isBlank()
+        );
+    }
+
+    public PasswordStatusResponse getPasswordStatus(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        boolean hasPassword = user.getPasswordHash() != null && !user.getPasswordHash().isBlank();
+        return new PasswordStatusResponse(user.getId(), hasPassword);
+    }
+
+    public AuthResponse setOrChangePassword(PasswordChangeRequest request) {
+        User user = userRepository.findById(request.getUserId().trim())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        String existingHash = user.getPasswordHash();
+        boolean hasPassword = existingHash != null && !existingHash.isBlank();
+
+        if (hasPassword) {
+            String currentPassword = request.getCurrentPassword() == null ? "" : request.getCurrentPassword();
+            if (currentPassword.isBlank()) {
+                throw new InvalidCredentialsException("Current password is required");
+            }
+
+            if (!passwordEncoder.matches(currentPassword, existingHash)) {
+                throw new InvalidCredentialsException("Current password is incorrect");
+            }
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        User savedUser = userRepository.save(user);
+        UserRole role = resolveRole(savedUser);
+
+        String message = hasPassword
+                ? "Password changed successfully"
+                : "Password set successfully. You can now log in with email/password and Google.";
+
+        return new AuthResponse(
+                message,
+                savedUser.getId(),
+                savedUser.getUserCode(),
+                savedUser.getFullName(),
+                savedUser.getEmail(),
+            role.name(),
+            true
         );
     }
 

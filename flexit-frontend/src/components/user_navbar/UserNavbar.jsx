@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getPasswordStatus } from "../../api/authApi";
 import { clearSessionUser, getSessionUser } from "../../utils/sessionUser";
 import {
   formatNotificationTime,
@@ -14,10 +15,13 @@ function UserNavbar() {
   const location = useLocation();
   const sessionUser = getSessionUser();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [hasPassword, setHasPassword] = useState(() => sessionUser.hasPassword ?? true);
   const [notifications, setNotifications] = useState(() =>
     getNotificationsForUser(sessionUser.userId)
   );
   const dropdownRef = useRef(null);
+  const profileDropdownRef = useRef(null);
 
   const latestNotifications = useMemo(() => notifications.slice(0, 3), [notifications]);
   const notificationCount = getNotificationCount(sessionUser.userId);
@@ -31,9 +35,32 @@ function UserNavbar() {
   }, [sessionUser.userId]);
 
   useEffect(() => {
+    const fetchPasswordStatus = async () => {
+      if (!sessionUser.userId) return;
+      if (typeof sessionUser.hasPassword === "boolean") {
+        setHasPassword(sessionUser.hasPassword);
+        return;
+      }
+
+      try {
+        const status = await getPasswordStatus(sessionUser.userId);
+        setHasPassword(Boolean(status.hasPassword));
+      } catch {
+        setHasPassword(true);
+      }
+    };
+
+    fetchPasswordStatus();
+  }, [sessionUser.userId]);
+
+  useEffect(() => {
     const handleOutsideClick = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsNotificationOpen(false);
+      }
+
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
       }
     };
 
@@ -62,6 +89,16 @@ function UserNavbar() {
   const handleViewAllNotifications = () => {
     setIsNotificationOpen(false);
     navigate("/user/notifications");
+  };
+
+  const handleUpdateDetails = () => {
+    setIsProfileOpen(false);
+    navigate("/user/profile/update");
+  };
+
+  const handleChangePassword = () => {
+    setIsProfileOpen(false);
+    navigate("/user/profile/change-password");
   };
 
   const handleNotificationClick = (notification) => {
@@ -125,7 +162,10 @@ function UserNavbar() {
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="relative" ref={dropdownRef}>
               <button
-                onClick={() => setIsNotificationOpen((previous) => !previous)}
+                onClick={() => {
+                  setIsProfileOpen(false);
+                  setIsNotificationOpen((previous) => !previous);
+                }}
                 className="relative flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
                 aria-label="View notifications"
               >
@@ -186,27 +226,60 @@ function UserNavbar() {
             </div>
 
             {/* Profile */}
-            <div className="flex items-center gap-3 rounded-[1.4rem] border border-slate-200 bg-white px-3 py-2 shadow-sm">
-              <div className="flex h-9 w-9 items-center justify-center rounded-[1.1rem] bg-[#0a192f] font-bold text-[#61CE70] ring-2 ring-[#61CE70]/20">
-                 {(sessionUser.userName || "U").charAt(0).toUpperCase()}
-              </div>
-              <div className="hidden sm:block">
-                <p className="text-sm font-semibold text-slate-700">
-                  {sessionUser.userName || "User"}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {sessionUser.userEmail || "No email available"}
-                </p>
-              </div>
+            <div className="relative" ref={profileDropdownRef}>
+              <button
+                onClick={() => {
+                  setIsNotificationOpen(false);
+                  setIsProfileOpen((previous) => !previous);
+                }}
+                className="flex items-center gap-3 rounded-[1.4rem] border border-slate-200 bg-white px-3 py-2 text-left shadow-sm transition hover:bg-slate-50"
+                aria-label="Open user profile menu"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-[1.1rem] bg-[#0a192f] font-bold text-[#61CE70] ring-2 ring-[#61CE70]/20">
+                  {(sessionUser.userName || "U").charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-sm font-semibold text-slate-700">
+                    {sessionUser.userName || "User"}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {sessionUser.userEmail || "No email available"}
+                  </p>
+                </div>
+              </button>
+
+              {isProfileOpen ? (
+                <div className="absolute right-0 mt-3 w-[330px] rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                    <p className="text-sm font-semibold text-slate-900">{sessionUser.userName || "User"}</p>
+                    <p className="mt-1 text-xs text-slate-600">{sessionUser.userEmail || "No email available"}</p>
+                    <p className="mt-1 text-xs text-slate-500">User ID: {sessionUser.userId || "N/A"}</p>
+                    <p className="text-xs text-slate-500">Role: {sessionUser.role || "USER"}</p>
+                  </div>
+
+                  <div className="mt-3 space-y-2">
+                    <button
+                      onClick={handleUpdateDetails}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                    >
+                      Update Details
+                    </button>
+                    <button
+                      onClick={handleChangePassword}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                    >
+                      {hasPassword ? "Change Password" : "Set a Password"}
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-600"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
-            
-            {/* Logout */}
-            <button 
-              onClick={handleLogout}
-              className="px-5 py-2.5 rounded-full bg-[#0a192f] text-white font-semibold text-sm transition-all duration-300 hover:bg-red-500 hover:shadow-lg hover:shadow-red-500/30 focus:ring-4 focus:ring-red-200 active:scale-95"
-            >
-              Logout
-            </button>
           </div>
           
         </div>

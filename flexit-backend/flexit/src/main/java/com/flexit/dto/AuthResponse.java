@@ -8,6 +8,7 @@ public class AuthResponse {
     private String fullName;
     private String email;
     private String role;
+    private boolean hasPassword;
 
     public AuthResponse() {
     }
@@ -19,6 +20,16 @@ public class AuthResponse {
         this.fullName = fullName;
         this.email = email;
         this.role = role;
+    }
+
+    public AuthResponse(String message, String userId, String userCode, String fullName, String email, String role, boolean hasPassword) {
+        this.message = message;
+        this.userId = userId;
+        this.userCode = userCode;
+        this.fullName = fullName;
+        this.email = email;
+        this.role = role;
+        this.hasPassword = hasPassword;
     }
 
     public String getMessage() {
@@ -67,5 +78,13 @@ public class AuthResponse {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public boolean isHasPassword() {
+        return hasPassword;
+    }
+
+    public void setHasPassword(boolean hasPassword) {
+        this.hasPassword = hasPassword;
     }
 }

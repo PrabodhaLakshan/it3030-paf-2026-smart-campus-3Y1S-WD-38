@@ -61,20 +61,24 @@ export function getSessionUser() {
   const userId = firstNonEmpty(userIdCandidates);
   const userName = firstNonEmpty([params.get("userName"), merged.userName, merged.name, merged.fullName]);
   const userEmail = firstNonEmpty([params.get("email"), merged.userEmail, merged.email]);
+  const hasPassword = typeof merged.hasPassword === "boolean" ? merged.hasPassword : undefined;
 
   return {
     role,
     userId,
     userName,
     userEmail,
+    hasPassword,
   };
 }
 
-export function setSessionUser({ role, userId, userName }) {
+export function setSessionUser({ role, userId, userName, userEmail, hasPassword }) {
   const nextUser = {
     role: normalizeRole(role),
     userId: firstNonEmpty([userId]),
     userName: firstNonEmpty([userName]),
+    userEmail: firstNonEmpty([userEmail]),
+    hasPassword: typeof hasPassword === "boolean" ? hasPassword : undefined,
   };
 
   localStorage.setItem("flexitUser", JSON.stringify(nextUser));
