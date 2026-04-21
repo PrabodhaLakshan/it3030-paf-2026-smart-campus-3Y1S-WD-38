@@ -7,7 +7,7 @@ function Home() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 40);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -17,267 +17,470 @@ function Home() {
     <>
       <style>
         {`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-          
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+          *, *::before, *::after { box-sizing: border-box; }
+
           body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* slate-50 */
+            background-color: #f8fafc;
+            margin: 0;
           }
 
-          .glass-nav {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+          /* ── Navbar ── */
+          .uni-nav {
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid #e8edf3;
+            transition: box-shadow 0.3s ease, padding 0.3s ease;
           }
-          
-          .glass-nav-scrolled {
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-          }
-
-          .mesh-bg {
-            background-color: #ffffff;
-            background-image: radial-gradient(at 40% 20%, hsla(228,100%,74%,0.15) 0px, transparent 50%),
-                              radial-gradient(at 80% 0%, hsla(189,100%,56%,0.15) 0px, transparent 50%),
-                              radial-gradient(at 0% 50%, hsla(355,100%,93%,0.1) 0px, transparent 50%);
+          .uni-nav.scrolled {
+            box-shadow: 0 2px 24px rgba(15, 23, 42, 0.07);
           }
 
-          .card-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          /* ── Nav links ── */
+          .nav-link {
+            position: relative;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #475569;
+            text-decoration: none;
+            padding-bottom: 2px;
+            transition: color 0.2s;
           }
-          .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08);
+          .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 0; bottom: -2px;
+            width: 0; height: 2px;
+            background: #1d4ed8;
+            border-radius: 2px;
+            transition: width 0.25s ease;
           }
+          .nav-link:hover { color: #1d4ed8; }
+          .nav-link:hover::after { width: 100%; }
+
+          /* ── Hero ── */
+          .hero-section {
+            background-image: url('/images/Home_page_bg.jpeg');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            position: relative;
+          }
+          .hero-overlay {
+            position: absolute;
+            inset: 0;
+            /* White-leaning transparent gradient — text stays dark & readable, image visible right */
+            background: linear-gradient(
+              100deg,
+              rgba(255,255,255,0.92) 0%,
+              rgba(255,255,255,0.82) 32%,
+              rgba(255,255,255,0.50) 56%,
+              rgba(255,255,255,0.10) 100%
+            );
+          }
+
+          /* ── Stat pill ── */
+          .stat-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.85);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 22px;
+            backdrop-filter: blur(6px);
+          }
+
+          /* ── Feature card ── */
+          .feature-card {
+            background: #fff;
+            border: 1px solid #e8edf3;
+            border-radius: 20px;
+            padding: 36px 32px;
+            transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+          }
+          .feature-card:hover {
+            box-shadow: 0 16px 40px rgba(29, 78, 216, 0.08);
+            transform: translateY(-4px);
+            border-color: #bfdbfe;
+          }
+
+          .icon-wrap {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 20px;
+          }
+
+          /* ── Buttons ── */
+          .btn-primary {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #1d4ed8;
+            color: #fff;
+            font-weight: 600; font-size: 0.9rem;
+            padding: 13px 28px;
+            border-radius: 10px;
+            border: none; cursor: pointer;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 16px rgba(29, 78, 216, 0.28);
+            text-decoration: none;
+          }
+          .btn-primary:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(29, 78, 216, 0.32);
+          }
+
+          .btn-outline {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #fff;
+            color: #1e293b;
+            font-weight: 600; font-size: 0.9rem;
+            padding: 12px 28px;
+            border-radius: 10px;
+            border: 1.5px solid #cbd5e1;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s, transform 0.2s;
+            text-decoration: none;
+          }
+          .btn-outline:hover {
+            border-color: #1d4ed8;
+            color: #1d4ed8;
+            transform: translateY(-2px);
+          }
+
+          .btn-nav-book {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #1d4ed8;
+            color: #fff;
+            font-weight: 600; font-size: 0.825rem;
+            padding: 9px 22px;
+            border-radius: 8px;
+            border: none; cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            letter-spacing: 0.01em;
+          }
+          .btn-nav-book:hover {
+            background: #1e40af;
+            transform: translateY(-1px);
+          }
+
+          /* ── Section label ── */
+          .section-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #1d4ed8;
+            background: #ebf2ff;
+            border-radius: 6px;
+            padding: 4px 12px;
+            margin-bottom: 14px;
+          }
+
+          /* ── divider ── */
+          .section-divider {
+            border: none;
+            border-top: 1px solid #e8edf3;
+            margin: 0;
+          }
+
+          /* ── ul check list ── */
+          .check-list { list-style: none; padding: 0; margin: 0; }
+          .check-list li {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.875rem; color: #475569;
+            padding: 5px 0;
+          }
+          .check-list li svg { flex-shrink: 0; }
         `}
       </style>
 
-      <div className="min-h-screen text-slate-800 font-['Inter',sans-serif] selection:bg-blue-200 selection:text-blue-900 flex flex-col">
-        
-        {/* Navigation */}
-        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 glass-nav ${scrolled ? 'glass-nav-scrolled py-3' : 'py-5'}`}>
-          <div className="max-w-7xl mx-auto px-6 md:px-8 xl:px-0 flex justify-between items-center">
-            {/* Brand */}
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-              </div>
-              <span className="text-2xl font-extrabold tracking-tight text-slate-900">FlexIt</span>
+      <div className="min-h-screen flex flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
+
+        {/* ══════════════════════════════════ NAVBAR ══════════════════════════════════ */}
+        <nav className={`uni-nav fixed top-0 left-0 right-0 z-50 ${scrolled ? 'scrolled' : ''}`}
+             style={{ padding: scrolled ? '10px 0' : '14px 0' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+
+            {/* Logo */}
+            <div style={{ cursor: 'pointer', flexShrink: 0 }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+              <img
+                src="/images/flexit_logo_lightbg1.png"
+                alt="FlexIt Logo"
+                style={{ height: 36, width: 'auto', objectFit: 'contain', display: 'block' }}
+              />
             </div>
 
-            {/* Links */}
-            <div className="hidden md:flex items-center gap-8">
-              <Link to="/" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Home</Link>
-              <a href="#about-us" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">About Us</a>
-              <a href="#services" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Services</a>
+            {/* Centre nav links */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 32 }} className="hidden md:flex">
+              <Link to="/" className="nav-link">Home</Link>
+              <a href="#about-us" className="nav-link">About Us</a>
+              <a href="#services" className="nav-link">Services</a>
             </div>
 
-            {/* Action */}
-            <div className="flex items-center gap-4">
-              <button onClick={() => navigate('/login')} className="hidden md:block text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors px-2">
+            {/* Right actions */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <button
+                onClick={() => navigate('/login')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: '#475569', transition: 'color 0.2s' }}
+                className="hidden md:block nav-link"
+              >
                 Log in
               </button>
-              <button onClick={() => navigate('/login')} className="bg-slate-900 hover:bg-blue-600 text-white text-sm font-semibold py-2.5 px-6 rounded-full transition-all duration-300 shadow-md hover:shadow-blue-500/25 transform hover:-translate-y-0.5">
+              <button onClick={() => navigate('/login')} className="btn-nav-book">
                 Book Now
               </button>
             </div>
+
           </div>
         </nav>
 
-        {/* Main Content */}
-        <main className="flex-grow pt-28">
-          {/* Hero Section */}
-          <section className="relative pt-16 pb-24 md:pt-28 md:pb-32 overflow-hidden mesh-bg">
-            <div className="max-w-7xl mx-auto px-6 md:px-8 xl:px-0 relative z-10 text-center flex flex-col items-center">
-              
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-sm font-semibold mb-8 animate-fade-in-up">
-                <span className="flex h-2 w-2 rounded-full bg-blue-600"></span>
-                Smart Campus Hub 2.0
-              </div>
-              
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-8 max-w-4xl mx-auto">
-                Manage Campus Resources <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 pb-1">Intelligently</span>
-              </h1>
-              
-              <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto mb-10">
-                A unified platform for students and staff to seamlessly book lecture halls, labs, and equipment. Quickly report and track maintenance issues with our real-time ticketing system.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-                <button onClick={() => navigate('/login')} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white text-base font-semibold py-3.5 px-8 rounded-full transition-all duration-300 shadow-lg shadow-blue-500/30 transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                  Get Started
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                </button>
-                <button onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })} className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-base font-semibold py-3.5 px-8 rounded-full transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center">
-                  Explore Services
-                </button>
-              </div>
+        {/* ══════════════════════════════════ HERO ══════════════════════════════════ */}
+        <main style={{ flexGrow: 1, paddingTop: 64 }}>
+          <section className="hero-section" style={{ minHeight: '85vh', display: 'flex', alignItems: 'center' }}>
+            <div className="hero-overlay" />
 
+            <div style={{ maxWidth: 1200, margin: '0 auto', padding: '80px 32px', position: 'relative', zIndex: 10, width: '100%' }}>
+              <div style={{ maxWidth: 620 }}>
+
+                {/* Badge */}
+                <span className="section-label">Campus Resource Platform</span>
+
+                <h1 style={{
+                  fontSize: 'clamp(2.6rem, 5vw, 4rem)',
+                  fontWeight: 900,
+                  lineHeight: 1.09,
+                  color: '#0f172a',
+                  letterSpacing: '-0.02em',
+                  marginBottom: 22,
+                  marginTop: 4,
+                }}>
+                  Manage Campus<br />
+                  Resources{' '}
+                  <span style={{ color: '#1d4ed8' }}>Intelligently</span>
+                </h1>
+
+                <p style={{
+                  fontSize: '1.075rem',
+                  lineHeight: 1.75,
+                  color: '#475569',
+                  maxWidth: 520,
+                  marginBottom: 36,
+                  fontWeight: 400,
+                }}>
+                  A unified platform for students and staff to seamlessly book lecture
+                  halls, labs, and equipment — and report facility issues in real time.
+                </p>
+
+                <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                  <button className="btn-primary" onClick={() => navigate('/login')}>
+                    Get Started
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                  </button>
+                  <button className="btn-outline" onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}>
+                    Explore Services
+                  </button>
+                </div>
+
+                {/* Quick stats under hero CTA */}
+                <div style={{ display: 'flex', gap: 16, marginTop: 48, flexWrap: 'wrap' }}>
+                  {[
+                    { value: '100+', label: 'Resources' },
+                    { value: '24/7', label: 'Availability' },
+                    { value: '10k+', label: 'Active Users' },
+                  ].map(s => (
+                    <div key={s.label} className="stat-pill">
+                      <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>{s.value}</span>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 500, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+              </div>
             </div>
           </section>
 
-          {/* Stats Showcase */}
-          <section className="bg-white border-y border-slate-100 py-10 relative z-20 -mt-8 shadow-[0_-10px_40px_rgba(0,0,0,0.02)] hidden md:block">
-             <div className="max-w-7xl mx-auto px-6 md:px-8 xl:px-0 flex flex-wrap justify-center md:justify-between items-center gap-8 md:gap-12">
-                <div className="flex flex-col text-center md:text-left">
-                  <span className="text-3xl font-extrabold text-slate-900">100+</span>
-                  <span className="text-sm font-medium text-slate-500 mt-1 uppercase tracking-wider">Resources</span>
-                </div>
-                <div className="flex flex-col text-center md:text-left">
-                  <span className="text-3xl font-extrabold text-slate-900">24/7</span>
-                  <span className="text-sm font-medium text-slate-500 mt-1 uppercase tracking-wider">Availability</span>
-                </div>
-                <div className="flex flex-col text-center md:text-left">
-                  <span className="text-3xl font-extrabold text-slate-900">&lt;2h</span>
-                  <span className="text-sm font-medium text-slate-500 mt-1 uppercase tracking-wider">Avg Resolution</span>
-                </div>
-                <div className="flex flex-col text-center md:text-left">
-                  <span className="text-3xl font-extrabold text-slate-900">10k+</span>
-                  <span className="text-sm font-medium text-slate-500 mt-1 uppercase tracking-wider">Active Users</span>
-                </div>
-             </div>
-          </section>
+          <hr className="section-divider" />
 
-          {/* About Section */}
-          <section id="about-us" className="py-24 bg-slate-50">
-            <div className="max-w-7xl mx-auto px-6 md:px-8 xl:px-0">
-              <div className="text-center max-w-3xl mx-auto mb-16">
-                <h2 className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3">About Us</h2>
-                <h3 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-6 tracking-tight">Streamlining Campus Operations</h3>
-                <p className="text-lg text-slate-600 leading-relaxed">
-                  Flexit is purposefully engineered for universities where hundreds of resources are concurrently shared. We eliminate scheduling conflicts, automate approvals, and provide a transparent medium to report facility issues.
+          {/* ══════════════════════════════════ ABOUT ══════════════════════════════════ */}
+          <section id="about-us" style={{ background: '#f8fafc', padding: '88px 32px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+
+              <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 56px' }}>
+                <span className="section-label">About Us</span>
+                <h2 style={{ fontSize: '2.1rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: '0 0 16px' }}>
+                  Streamlining Campus Operations
+                </h2>
+                <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: 1.8 }}>
+                  Flexit is engineered for universities where hundreds of shared resources require seamless coordination.
+                  We eliminate scheduling conflicts, automate approvals, and provide a transparent platform for facility requests.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <article className="bg-white rounded-2xl p-8 border border-slate-100 card-hover relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <svg className="w-24 h-24 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+                {[
+                  {
+                    color: '#1d4ed8', bg: '#eef4ff',
+                    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />,
+                    title: 'Our Mission',
+                    desc: 'Deliver a transparent, intuitive, and dependable resource management ecosystem for every faculty and student.',
+                  },
+                  {
+                    color: '#7c3aed', bg: '#f5f0ff',
+                    icon: <><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></>,
+                    title: 'Our Vision',
+                    desc: 'Cultivate a smart campus where operations, approvals, and physical requests move with zero friction.',
+                  },
+                  {
+                    color: '#059669', bg: '#ecfdf5',
+                    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />,
+                    title: 'Core Values',
+                    desc: 'Absolute speed, uncompromised clarity, and total accountability embedded into all facility protocols.',
+                  },
+                ].map(card => (
+                  <div key={card.title} className="feature-card">
+                    <div className="icon-wrap" style={{ background: card.bg }}>
+                      <svg width="24" height="24" fill="none" stroke={card.color} viewBox="0 0 24 24">{card.icon}</svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>{card.title}</h3>
+                    <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.75, margin: 0 }}>{card.desc}</p>
                   </div>
-                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                  </div>
-                  <h4 className="text-xl font-bold text-slate-900 mb-3">Our Mission</h4>
-                  <p className="text-slate-600 leading-relaxed relative z-10">
-                    To deliver a transparent, intuitive, and highly dependable resource management ecosystem for every faculty and student.
-                  </p>
-                </article>
-
-                <article className="bg-white rounded-2xl p-8 border border-slate-100 card-hover relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                     <svg className="w-24 h-24 text-indigo-600" fill="currentColor" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                  </div>
-                  <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-6">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                  </div>
-                  <h4 className="text-xl font-bold text-slate-900 mb-3">Our Vision</h4>
-                  <p className="text-slate-600 leading-relaxed relative z-10">
-                    To cultivate a smart campus environment where operations, approvals, and physical requests move with zero friction.
-                  </p>
-                </article>
-
-                <article className="bg-white rounded-2xl p-8 border border-slate-100 card-hover relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                     <svg className="w-24 h-24 text-emerald-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  </div>
-                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-6">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                  </div>
-                  <h4 className="text-xl font-bold text-slate-900 mb-3">Core Values</h4>
-                  <p className="text-slate-600 leading-relaxed relative z-10">
-                    Absolute speed, uncompromised clarity, and total accountability embedded deeply into all facility protocols.
-                  </p>
-                </article>
+                ))}
               </div>
             </div>
           </section>
 
-          {/* Services Section */}
-          <section id="services" className="py-24 bg-white">
-            <div className="max-w-7xl mx-auto px-6 md:px-8 xl:px-0">
-              
-              <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-                <div className="max-w-2xl">
-                  <h2 className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3">Capabilities</h2>
-                  <h3 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Everything you need in one hub.</h3>
+          <hr className="section-divider" />
+
+          {/* ══════════════════════════════════ SERVICES ══════════════════════════════════ */}
+          <section id="services" style={{ background: '#fff', padding: '88px 32px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 52, flexWrap: 'wrap', gap: 16 }}>
+                <div>
+                  <span className="section-label">Capabilities</span>
+                  <h2 style={{ fontSize: '2.1rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: '0' }}>
+                    Everything you need in one hub.
+                  </h2>
                 </div>
-                <button onClick={() => navigate('/login')} className="hidden md:flex text-blue-600 font-semibold hover:text-blue-700 items-center gap-2 transition-colors">
-                  Access Portal <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#1d4ed8', display: 'flex', alignItems: 'center', gap: 6 }} className="hidden md:flex">
+                  Access Portal
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="group rounded-3xl bg-slate-50 border border-slate-100 p-8 md:p-12 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 hover:bg-white">
-                  <div className="h-14 w-14 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center mb-8">
-                    <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
+
+                {/* Resource Booking */}
+                <div className="feature-card" style={{ borderTop: '4px solid #1d4ed8' }}>
+                  <div className="icon-wrap" style={{ background: '#eef4ff' }}>
+                    <svg width="24" height="24" fill="none" stroke="#1d4ed8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
                   </div>
-                  <h4 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors">Resource Booking</h4>
-                  <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                    Easily search, check availability, and reserve campus labs, lecture halls, and premium meeting spaces with an intuitive and organized booking workflow.
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>Resource Booking</h3>
+                  <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.75, marginBottom: 22 }}>
+                    Search, check availability, and reserve campus labs, lecture halls, and meeting spaces with an intuitive booking workflow.
                   </p>
-                  <ul className="space-y-3 mb-8">
-                    <li className="flex items-center text-slate-600"><svg className="w-5 h-5 text-emerald-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg> Real-time availability</li>
-                    <li className="flex items-center text-slate-600"><svg className="w-5 h-5 text-emerald-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg> Automated conflict resolution</li>
-                    <li className="flex items-center text-slate-600"><svg className="w-5 h-5 text-emerald-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg> Instant approvals</li>
+                  <ul className="check-list" style={{ marginBottom: 24 }}>
+                    {['Real-time availability', 'Automated conflict resolution', 'Instant approvals'].map(item => (
+                      <li key={item}>
+                        <svg width="16" height="16" fill="none" stroke="#059669" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                        {item}
+                      </li>
+                    ))}
                   </ul>
-                  <button onClick={() => navigate('/login')} className="text-slate-900 font-semibold flex items-center gap-2 group-hover:text-blue-600 transition-colors">
-                    Book a space <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                  <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', color: '#1d4ed8', display: 'flex', alignItems: 'center', gap: 6, padding: 0 }}>
+                    Book a space
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                   </button>
                 </div>
 
-                <div className="group rounded-3xl bg-slate-50 border border-slate-100 p-8 md:p-12 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 hover:bg-white">
-                  <div className="h-14 w-14 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center mb-8">
-                     <svg className="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                {/* Issue Reporting */}
+                <div className="feature-card" style={{ borderTop: '4px solid #7c3aed' }}>
+                  <div className="icon-wrap" style={{ background: '#f5f0ff' }}>
+                    <svg width="24" height="24" fill="none" stroke="#7c3aed" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
                   </div>
-                  <h4 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-indigo-600 transition-colors">Issue Reporting</h4>
-                  <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                    Encountered damaged equipment or technical anomalies? Report instances quickly and track resolution progress natively from your dashboard.
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>Issue Reporting</h3>
+                  <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.75, marginBottom: 22 }}>
+                    Encountered damaged equipment or technical issues? Report quickly and track resolution progress from your dashboard.
                   </p>
-                  <ul className="space-y-3 mb-8">
-                    <li className="flex items-center text-slate-600"><svg className="w-5 h-5 text-emerald-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg> Priority queuing</li>
-                    <li className="flex items-center text-slate-600"><svg className="w-5 h-5 text-emerald-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg> Progress tracking</li>
-                    <li className="flex items-center text-slate-600"><svg className="w-5 h-5 text-emerald-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg> Direct technician feedback</li>
+                  <ul className="check-list" style={{ marginBottom: 24 }}>
+                    {['Priority queuing', 'Progress tracking', 'Direct technician feedback'].map(item => (
+                      <li key={item}>
+                        <svg width="16" height="16" fill="none" stroke="#059669" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                        {item}
+                      </li>
+                    ))}
                   </ul>
-                  <button onClick={() => navigate('/login')} className="text-slate-900 font-semibold flex items-center gap-2 group-hover:text-indigo-600 transition-colors">
-                    Raise a ticket <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                  <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', color: '#7c3aed', display: 'flex', alignItems: 'center', gap: 6, padding: 0 }}>
+                    Raise a ticket
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                   </button>
                 </div>
+
               </div>
             </div>
           </section>
+
         </main>
 
-        {/* Premium Footer */}
-        <footer className="bg-slate-900 text-slate-300 py-16 border-t border-slate-800">
-          <div className="max-w-7xl mx-auto px-6 md:px-8 xl:px-0 flex flex-col md:flex-row justify-between items-center gap-8">
-            
-            <div className="flex flex-col items-center md:items-start text-center md:text-left">
-              <div className="flex items-center gap-2 mb-4">
-                <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                <span className="text-2xl font-bold tracking-tight text-white">FlexIt</span>
+        {/* ══════════════════════════════════ FOOTER ══════════════════════════════════ */}
+        <footer style={{ background: '#0f172a', color: '#94a3b8', padding: '56px 32px 32px', borderTop: '1px solid #1e293b' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 32, marginBottom: 40 }}>
+
+              <div>
+                <img src="/images/flexit_logo_Darkbg1.png" alt="FlexIt" style={{ height: 34, width: 'auto', objectFit: 'contain', marginBottom: 14, display: 'block' }} />
+                <p style={{ maxWidth: 300, fontSize: '0.85rem', lineHeight: 1.75, color: '#64748b', margin: 0 }}>
+                  Empowering modern universities with intelligent resource allocation and seamless maintenance routing.
+                </p>
               </div>
-              <p className="max-w-sm text-slate-400 text-sm leading-relaxed">
-                Empowering modern universities with intelligent resource allocation and seamless maintenance routing.
+
+              <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
+                <div>
+                  <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', marginBottom: 14 }}>Platform</p>
+                  {['About Us', 'Services', 'Book a Resource'].map(link => (
+                    <a key={link} href="#" style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
+                       onMouseEnter={e => e.target.style.color='#e2e8f0'}
+                       onMouseLeave={e => e.target.style.color='#64748b'}>
+                      {link}
+                    </a>
+                  ))}
+                </div>
+                <div>
+                  <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#475569', marginBottom: 14 }}>Support</p>
+                  {['Help Center', 'Report an Issue', 'Contact Us'].map(link => (
+                    <a key={link} href="#" style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
+                       onMouseEnter={e => e.target.style.color='#e2e8f0'}
+                       onMouseLeave={e => e.target.style.color='#64748b'}>
+                      {link}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid #1e293b', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+              <p style={{ fontSize: '0.8rem', color: '#475569', margin: 0 }}>
+                © {new Date().getFullYear()} FlexIt Solutions. All rights reserved.
               </p>
-            </div>
-
-            <div className="flex flex-col items-center flex-grow text-center">
-              <div className="flex gap-6 mb-6">
-                <a href="#about-us" className="text-sm font-medium hover:text-white transition-colors">About Us</a>
-                <a href="#services" className="text-sm font-medium hover:text-white transition-colors">Platform</a>
-                <a href="#contact" className="text-sm font-medium hover:text-white transition-colors">Support</a>
+              <div style={{ display: 'flex', gap: 20 }}>
+                {['Privacy Policy', 'Terms of Service'].map(t => (
+                  <a key={t} href="#" style={{ fontSize: '0.8rem', color: '#475569', textDecoration: 'none' }}>{t}</a>
+                ))}
               </div>
             </div>
-
-            <div className="flex flex-col items-center md:items-end w-full md:w-auto mt-8 md:mt-0 pt-8 md:pt-0 border-t border-slate-800 md:border-none text-center md:text-right">
-              <div className="mt-4 text-sm text-slate-500">
-                &copy; {new Date().getFullYear()} FlexIt Solutions. All rights reserved.
-              </div>
-            </div>
-            
           </div>
         </footer>
+
       </div>
     </>
   );
