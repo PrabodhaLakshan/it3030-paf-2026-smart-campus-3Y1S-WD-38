@@ -3,6 +3,7 @@ import Navbar from './components/navbar/Navbar';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AppRoutes from './routes/AppRoutes';
+import Footer from './components/footer/footer';
 import './App.css';
 
 // Auth guard — redirects unauthenticated users to /login
@@ -23,9 +24,12 @@ function AppLayout() {
   const authPaths = ['/login', '/signup'];
   const hideNavbar = authPaths.includes(location.pathname) || location.pathname.startsWith('/admin');
 
+  const hideLayout = location.pathname === '/login' || location.pathname === '/signup';
+  const showFooter = location.pathname === '/';
+
   return (
     <>
-      {!hideNavbar && <Navbar />}
+      {!hideLayout && <Navbar />}
       <Routes>
         {/* Public auth routes */}
         <Route path="/login" element={<Login />} />
@@ -41,6 +45,7 @@ function AppLayout() {
           }
         />
       </Routes>
+      {showFooter && <Footer />}
     </>
   );
 }

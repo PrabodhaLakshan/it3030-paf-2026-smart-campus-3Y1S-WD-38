@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Layers, LoaderCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import UserSidebar from "../../components/user_sidebar/UserSidebar";
 import { getAllResources } from "../../api/resourceApi";
 
 const TYPES = ["ALL", "LAB", "LECTURE_HALL", "MEETING_ROOM", "PROJECTOR", "CAMERA"];
@@ -14,6 +16,7 @@ const TYPE_LABELS = {
 };
 
 function UserResourcesPage() {
+  const navigate = useNavigate();
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -118,9 +121,10 @@ function UserResourcesPage() {
           ) : (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 xl:gap-8">
               {filteredResources.map((resource) => (
-                <div 
-                  key={resource.id} 
-                  className="group flex flex-col justify-between overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-[0_20px_40px_-15px_rgba(15,23,42,0.15)] hover:border-emerald-200 hover:-translate-y-1"
+                <div
+                  key={resource.id}
+                  onClick={() => navigate(`/user/resources/${resource.id}`)}
+                  className="group flex flex-col justify-between overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm transition-all cursor-pointer hover:shadow-[0_20px_40px_-15px_rgba(15,23,42,0.15)] hover:border-emerald-200 hover:-translate-y-1"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-3 mb-4">
@@ -128,10 +132,10 @@ function UserResourcesPage() {
                         {resource.name}
                       </h3>
                       <span className="inline-flex shrink-0 items-center rounded-full bg-blue-50/80 px-2.5 py-1 text-[11px] font-bold tracking-wider uppercase text-blue-700 ring-1 ring-inset ring-blue-700/10 shadow-sm">
-                        {resource.type?.replace("_", " ")}
+                        {resource.type?.replace(/_/g, " ")}
                       </span>
                     </div>
-                    
+
                     <p className="text-[13px] text-slate-500 mb-6 leading-relaxed line-clamp-3">
                       {resource.description || "No description provided for this resource. Contact the administrator for more details."}
                     </p>
@@ -145,6 +149,13 @@ function UserResourcesPage() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-400 font-medium">Location</span>
                       <span className="font-medium text-slate-700">{resource.location}</span>
+                    </div>
+                    {/* Click hint */}
+                    <div className="flex items-center justify-center pt-2">
+                      <span className="text-[11px] text-slate-400 group-hover:text-emerald-600 transition-colors font-medium flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        Click to view details & book
+                      </span>
                     </div>
                   </div>
                 </div>

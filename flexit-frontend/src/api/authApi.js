@@ -15,3 +15,13 @@ export const googleLogin = async (payload) => {
   const response = await axios.post(`${BASE_URL}/google`, payload);
   return response.data;
 };
+
+export const getPasswordStatus = async (userId) => {
+  const response = await axios.get(`${BASE_URL}/password-status/${userId}`);
+  return response.data;
+};
+
+export const setOrChangePassword = async (payload) => {
+  const response = await axios.post(`${BASE_URL}/password`, payload);
+  return response.data;
+};

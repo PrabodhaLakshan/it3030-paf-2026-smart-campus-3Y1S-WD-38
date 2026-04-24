@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
+  ArrowLeft,
   CalendarDays,
   Clock3,
   Users,
@@ -35,6 +36,8 @@ const getStoredUserCode = () => {
 
 function BookingsFormPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preselectedCode = searchParams.get("resourceCode");
   const [loggedInUserCode, setLoggedInUserCode] = useState(getStoredUserCode);
   const [resources, setResources] = useState([]);
   const [resourcesLoading, setResourcesLoading] = useState(true);
@@ -119,6 +122,17 @@ function BookingsFormPage() {
 
     fetchResources();
   }, []);
+
+  // Auto-select resource when coming from the detail page via Book Now
+  useEffect(() => {
+    if (!preselectedCode || resourcesLoading || resources.length === 0) return;
+    const matched = resources.find(
+      (r) => r.resourceCode === preselectedCode
+    );
+    if (matched) {
+      setFormData((prev) => ({ ...prev, resourceId: matched.resourceCode }));
+    }
+  }, [preselectedCode, resourcesLoading, resources]);
 
   const getMinDateTime = () => {
     const now = new Date();
@@ -308,6 +322,14 @@ function BookingsFormPage() {
       )}
 
       <div className="mb-8">
+        <Link
+          to="/user/dashboard"
+          className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+        >
+          <ArrowLeft size={16} />
+          Back to Dashboard
+        </Link>
+
         <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#61CE70]/10 px-4 py-2 text-sm font-semibold text-[#2d9d45]">
           <CheckSquare size={16} />
           User Booking Portal
