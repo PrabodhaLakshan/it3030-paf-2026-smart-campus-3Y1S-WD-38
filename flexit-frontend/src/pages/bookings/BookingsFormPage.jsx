@@ -14,6 +14,9 @@ import {
 import { createBooking } from "../../api/bookingApi";
 import { getAllResources } from "../../api/resourceApi";
 
+const BOOKING_START_HOUR = 8;
+const BOOKING_END_HOUR = 20;
+
 const getStoredUserCode = () => {
   try {
     const storedUser = JSON.parse(localStorage.getItem("flexitUser") || "null");
@@ -149,6 +152,89 @@ function BookingsFormPage() {
     return localMax.toISOString().slice(0, 16);
   };
 
+  const formatDateTimeLocal = (date) => {
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60000);
+    return localDate.toISOString().slice(0, 16);
+  };
+
+  const getDatePart = (value) => value.slice(0, 10);
+
+  const getAllowedStartForDate = (dateString) => {
+    const allowedStart = new Date(`${dateString}T08:00`);
+    const now = new Date();
+    const today = formatDateTimeLocal(now).slice(0, 10);
+
+    if (dateString !== today) {
+      return `${dateString}T08:00`;
+    }
+
+    return formatDateTimeLocal(now > allowedStart ? now : allowedStart);
+  };
+
+  const getAllowedEndForDate = (dateString) => `${dateString}T20:00`;
+
+  const getStartTimeMin = () => {
+    const baseMin = getMinDateTime();
+    const selectedDate = formData.startTime ? getDatePart(formData.startTime) : "";
+
+    if (!selectedDate) {
+      return baseMin;
+    }
+
+    return getAllowedStartForDate(selectedDate);
+  };
+
+  const getStartTimeMax = () => {
+    const selectedDate = formData.startTime ? getDatePart(formData.startTime) : "";
+
+    if (!selectedDate) {
+      return getMaxDateTime();
+    }
+
+    return getAllowedEndForDate(selectedDate);
+  };
+
+  const getEndTimeMin = () => {
+    if (!formData.startTime) {
+      return getMinDateTime();
+    }
+
+    return formData.startTime;
+  };
+
+  const getEndTimeMax = () => {
+    if (!formData.startTime) {
+      return getMaxDateTime();
+    }
+
+    return getAllowedEndForDate(getDatePart(formData.startTime));
+  };
+
+  const isWithinAllowedHours = (date) => {
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+
+    if (hour < BOOKING_START_HOUR) {
+      return false;
+    }
+
+    if (hour > BOOKING_END_HOUR) {
+      return false;
+    }
+
+    if (hour === BOOKING_END_HOUR && minute > 0) {
+      return false;
+    }
+
+    return true;
+  };
+
+  const isSameDayRange = (start, end) =>
+    start.getFullYear() === end.getFullYear() &&
+    start.getMonth() === end.getMonth() &&
+    start.getDate() === end.getDate();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -159,6 +245,15 @@ function BookingsFormPage() {
       };
 
       if (name === "startTime" && prev.endTime && value && prev.endTime <= value) {
+        updated.endTime = "";
+      }
+
+      if (
+        name === "startTime" &&
+        prev.endTime &&
+        value &&
+        prev.endTime.slice(0, 10) !== value.slice(0, 10)
+      ) {
         updated.endTime = "";
       }
 
@@ -231,6 +326,21 @@ function BookingsFormPage() {
 
     if (end <= start) {
       showAlert("error", "End time must be later than start time.");
+      setLoading(false);
+      return;
+    }
+
+    if (!isSameDayRange(start, end)) {
+      showAlert("error", "Start time and end time must be within the same day.");
+      setLoading(false);
+      return;
+    }
+
+    if (!isWithinAllowedHours(start) || !isWithinAllowedHours(end)) {
+      showAlert(
+        "error",
+        "Bookings can only be scheduled between 8:00 AM and 8:00 PM."
+      );
       setLoading(false);
       return;
     }
@@ -401,11 +511,15 @@ function BookingsFormPage() {
               name="startTime"
               value={formData.startTime}
               onChange={handleChange}
-              min={getMinDateTime()}
-              max={getMaxDateTime()}
+              min={getStartTimeMin()}
+              max={getStartTimeMax()}
+              step="1800"
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[#61CE70] focus:bg-white"
               required
             />
+            <p className="mt-2 text-xs text-slate-500">
+              Select a time between 8:00 AM and 8:00 PM.
+            </p>
           </div>
 
           <div>
@@ -418,11 +532,15 @@ function BookingsFormPage() {
               name="endTime"
               value={formData.endTime}
               onChange={handleChange}
-              min={formData.startTime || getMinDateTime()}
-              max={getMaxDateTime()}
+              min={getEndTimeMin()}
+              max={getEndTimeMax()}
+              step="1800"
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[#61CE70] focus:bg-white"
               required
             />
+            <p className="mt-2 text-xs text-slate-500">
+              End time must be on the same day and no later than 8:00 PM.
+            </p>
           </div>
 
           <div className="md:col-span-2">
