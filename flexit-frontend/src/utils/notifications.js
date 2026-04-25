@@ -1,4 +1,6 @@
 const STORAGE_KEY = "flexitNotifications";
+const ADMIN_USERS_KEY = "flexitAdminUsers";
+const ADMIN_BROADCAST_USER_ID = "__ADMIN_BROADCAST__";
 
 function safeParse(value) {
   if (!value) return [];
@@ -21,16 +23,83 @@ function readAllNotifications() {
 
 function writeAllNotifications(notifications) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("flexitNotificationsUpdated"));
+  }
+}
+
+function readAdminUsers() {
+  return safeParse(localStorage.getItem(ADMIN_USERS_KEY));
+}
+
+function writeAdminUsers(userIds) {
+  localStorage.setItem(ADMIN_USERS_KEY, JSON.stringify(userIds));
+}
+
+function normalizeRole(value) {
+  return String(value || "").toUpperCase().trim();
+}
+
+function normalizeUserId(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value).trim();
+}
+
+export function registerAdminUser(userId) {
+  const normalizedUserId = normalizeUserId(userId);
+  if (!normalizedUserId) return;
+
+  const uniqueUsers = Array.from(
+    new Set([normalizedUserId, ...readAdminUsers().map(normalizeUserId)].filter(Boolean))
+  );
+  writeAdminUsers(uniqueUsers.slice(0, 50));
+}
+
+export function getAdminUserIds() {
+  return readAdminUsers().map(normalizeUserId).filter(Boolean);
+}
+
+export function addNotificationForAdmins({
+  title,
+  message,
+  type = "info",
+  actionUrl = "/admin/notifications",
+}) {
+  // Always keep one admin broadcast entry so current/future admin sessions can see it.
+  addNotification({
+    userId: ADMIN_BROADCAST_USER_ID,
+    title,
+    message,
+    type,
+    actionUrl,
+  });
+
+  const adminUserIds = getAdminUserIds();
+
+  adminUserIds.forEach((adminUserId) => {
+    addNotification({
+      userId: adminUserId,
+      title,
+      message,
+      type,
+      actionUrl,
+    });
+  });
 }
 
 export function addNotification({ userId, title, message, type = "info", actionUrl = "/user/notifications" }) {
-  if (!userId) return;
+  const normalizedUserId = normalizeUserId(userId);
+  if (!normalizedUserId) return;
 
   const current = readAllNotifications();
   const next = [
     {
       id: nextId(),
-      userId,
+      userId: normalizedUserId,
       title,
       message,
       type,
@@ -44,11 +113,18 @@ export function addNotification({ userId, title, message, type = "info", actionU
   writeAllNotifications(next);
 }
 
-export function markNotificationAsRead(notificationId, userId) {
-  if (!notificationId || !userId) return;
+export function markNotificationAsRead(notificationId, userId, role = "") {
+  if (!notificationId) return;
+
+  const normalizedRole = normalizeRole(role);
+  const normalizedUserId = normalizeUserId(userId);
 
   const next = readAllNotifications().map((item) => {
-    if (item.id === notificationId && item.userId === userId) {
+    const isOwner = normalizeUserId(item.userId) === normalizedUserId;
+    const isAdminBroadcast =
+      normalizedRole === "ADMIN" && item.userId === ADMIN_BROADCAST_USER_ID;
+
+    if (item.id === notificationId && (isOwner || isAdminBroadcast)) {
       return {
         ...item,
         isRead: true,
@@ -61,16 +137,25 @@ export function markNotificationAsRead(notificationId, userId) {
   writeAllNotifications(next);
 }
 
-export function getNotificationsForUser(userId) {
-  if (!userId) return [];
+export function getNotificationsForUser(userId, role = "") {
+  const normalizedRole = normalizeRole(role);
+  const normalizedUserId = normalizeUserId(userId);
+
+  if (!normalizedUserId && normalizedRole !== "ADMIN") return [];
 
   return readAllNotifications()
-    .filter((item) => item.userId === userId)
+    .filter((item) => {
+      if (normalizeUserId(item.userId) === normalizedUserId) {
+        return true;
+      }
+
+      return normalizedRole === "ADMIN" && item.userId === ADMIN_BROADCAST_USER_ID;
+    })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export function getNotificationCount(userId) {
-  return getNotificationsForUser(userId).filter((item) => !item.isRead).length;
+export function getNotificationCount(userId, role = "") {
+  return getNotificationsForUser(userId, role).filter((item) => !item.isRead).length;
 }
 
 export function formatNotificationTime(value) {

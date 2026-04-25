@@ -30,6 +30,7 @@ import { getSessionUser, isAuthenticated } from "../utils/sessionUser";
 
 import UpdateDetailsPage from "../pages/user/UpdateDetailsPage";
 import ChangePasswordPage from "../pages/user/ChangePasswordPage";
+import NotificationsPage from "../pages/user/NotificationsPage";
 
 
 function getDefaultRouteForRole(role) {
@@ -97,8 +98,9 @@ function AppRoutes() {
               <Route path="/user/tickets/create" element={<CreateTicketPage />} />
               <Route path="/user/tickets/:id" element={<TicketDetailsPage />} />
               <Route path="/user/tickets/edit/:id" element={<TicketEditPage />} />
-                      <Route path="/user/profile/update" element={<UpdateDetailsPage />} />
+              <Route path="/user/profile/update" element={<UpdateDetailsPage />} />
               <Route path="/user/profile/change-password" element={<ChangePasswordPage />} />
+              <Route path="/user/notifications" element={<NotificationsPage />} />
             </Route>
           </Route>
 

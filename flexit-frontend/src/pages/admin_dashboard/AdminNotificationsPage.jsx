@@ -1,19 +1,44 @@
 import { Bell, CalendarClock } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getSessionUser } from "../../utils/sessionUser";
 import {
   formatNotificationTime,
-  getNotificationsForUser,
-  markNotificationAsRead,
-} from "../../utils/notifications";
+  getMyNotifications,
+  markMyNotificationAsRead,
+} from "../../api/notificationApi";
+import { getSessionUser } from "../../utils/sessionUser";
 
 function AdminNotificationsPage() {
   const navigate = useNavigate();
   const sessionUser = getSessionUser();
-  const notifications = getNotificationsForUser(sessionUser.userId);
+  const [notifications, setNotifications] = useState([]);
 
-  const handleNotificationClick = (notification) => {
-    markNotificationAsRead(notification.id, sessionUser.userId);
+  const refreshNotifications = async () => {
+    if (!sessionUser.userId) {
+      setNotifications([]);
+      return;
+    }
+
+    try {
+      const items = await getMyNotifications(sessionUser.userId, sessionUser.role, 200);
+      setNotifications(Array.isArray(items) ? items : []);
+    } catch (error) {
+      console.error("Failed to load admin notifications:", error);
+    }
+  };
+
+  useEffect(() => {
+    refreshNotifications();
+  }, [sessionUser.userId, sessionUser.role]);
+
+  const handleNotificationClick = async (notification) => {
+    try {
+      await markMyNotificationAsRead(notification.id, sessionUser.userId, sessionUser.role);
+      refreshNotifications();
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+
     if (notification.actionUrl) {
       navigate(notification.actionUrl);
       return;

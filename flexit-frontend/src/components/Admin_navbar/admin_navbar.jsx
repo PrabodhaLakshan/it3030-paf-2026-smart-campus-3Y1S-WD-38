@@ -4,26 +4,40 @@ import { useNavigate } from 'react-router-dom';
 import { getSessionUser } from '../../utils/sessionUser';
 import {
   formatNotificationTime,
-  getNotificationCount,
-  getNotificationsForUser,
-  markNotificationAsRead,
-} from '../../utils/notifications';
+  getMyNotifications,
+  getMyUnreadNotificationCount,
+  markMyNotificationAsRead,
+} from '../../api/notificationApi';
 
 function AdminNavbar() {
   const navigate = useNavigate();
   const sessionUser = getSessionUser();
   const [adminName, setAdminName] = useState('Admin');
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [notifications, setNotifications] = useState(() =>
-    getNotificationsForUser(sessionUser.userId)
-  );
+  const [notifications, setNotifications] = useState([]);
+  const [notificationCount, setNotificationCount] = useState(0);
   const dropdownRef = useRef(null);
 
   const latestNotifications = useMemo(() => notifications.slice(0, 3), [notifications]);
-  const notificationCount = getNotificationCount(sessionUser.userId);
 
-  const refreshNotifications = () => {
-    setNotifications(getNotificationsForUser(sessionUser.userId));
+  const refreshNotifications = async () => {
+    if (!sessionUser.userId) {
+      setNotifications([]);
+      setNotificationCount(0);
+      return;
+    }
+
+    try {
+      const [items, unread] = await Promise.all([
+        getMyNotifications(sessionUser.userId, sessionUser.role, 30),
+        getMyUnreadNotificationCount(sessionUser.userId, sessionUser.role),
+      ]);
+
+      setNotifications(Array.isArray(items) ? items : []);
+      setNotificationCount(unread);
+    } catch (error) {
+      console.error('Failed to load notifications:', error);
+    }
   };
 
   useEffect(() => {
@@ -43,25 +57,22 @@ function AdminNavbar() {
       }
     };
 
-    const handleStorage = (event) => {
-      if (!event.key || event.key === 'flexitNotifications') {
-        refreshNotifications();
-      }
-    };
-
     window.addEventListener('mousedown', handleOutsideClick);
-    window.addEventListener('storage', handleStorage);
     window.addEventListener('focus', refreshNotifications);
 
     return () => {
       window.removeEventListener('mousedown', handleOutsideClick);
-      window.removeEventListener('storage', handleStorage);
       window.removeEventListener('focus', refreshNotifications);
     };
-  }, [sessionUser.userId]);
+  }, [sessionUser.userId, sessionUser.role]);
 
-  const handleNotificationClick = (notification) => {
-    markNotificationAsRead(notification.id, sessionUser.userId);
+  const handleNotificationClick = async (notification) => {
+    try {
+      await markMyNotificationAsRead(notification.id, sessionUser.userId, sessionUser.role);
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+
     refreshNotifications();
     setIsNotificationOpen(false);
 

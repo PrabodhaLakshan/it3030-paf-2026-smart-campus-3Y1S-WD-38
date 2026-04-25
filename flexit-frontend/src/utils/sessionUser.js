@@ -29,6 +29,10 @@ function normalizeRole(value) {
 
 function firstNonEmpty(values) {
   for (const value of values) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return String(value);
+    }
+
     if (typeof value === "string" && value.trim()) {
       return value.trim();
     }
@@ -51,6 +55,7 @@ export function getSessionUser() {
   const params = new URLSearchParams(window.location.search);
   const role = normalizeRole(params.get("role") || merged.role || "");
   const userIdCandidates = [params.get("userId"), merged.userId, merged.id];
+  const userCode = firstNonEmpty([params.get("userCode"), merged.userCode]);
 
   // Only technician sessions should resolve identity from techId values.
   if (role === "TECHNICIAN") {
@@ -66,16 +71,18 @@ export function getSessionUser() {
   return {
     role,
     userId,
+    userCode,
     userName,
     userEmail,
     hasPassword,
   };
 }
 
-export function setSessionUser({ role, userId, userName, userEmail, hasPassword }) {
+export function setSessionUser({ role, userId, userCode, userName, userEmail, hasPassword }) {
   const nextUser = {
     role: normalizeRole(role),
     userId: firstNonEmpty([userId]),
+    userCode: firstNonEmpty([userCode]),
     userName: firstNonEmpty([userName]),
     userEmail: firstNonEmpty([userEmail]),
     hasPassword: typeof hasPassword === "boolean" ? hasPassword : undefined,

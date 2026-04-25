@@ -12,9 +12,12 @@ import java.util.List;
 public class BookingService {
 
     private final BookingRepository bookingRepository;
+    private final NotificationService notificationService;
 
-    public BookingService(BookingRepository bookingRepository) {
+    public BookingService(BookingRepository bookingRepository,
+                          NotificationService notificationService) {
         this.bookingRepository = bookingRepository;
+        this.notificationService = notificationService;
     }
 
     public Booking createBooking(Booking booking) {
@@ -22,7 +25,9 @@ public class BookingService {
         checkConflict(booking);
 
         booking.setStatus(BookingStatus.PENDING);
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+        notificationService.createBookingCreatedForAdmins(savedBooking);
+        return savedBooking;
     }
 
     public List<Booking> getAllBookings() {
@@ -45,14 +50,18 @@ public class BookingService {
     public Booking approveBooking(String id) {
         Booking booking = getBookingById(id);
         booking.setStatus(BookingStatus.APPROVED);
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+        notificationService.createBookingApprovedForUser(savedBooking);
+        return savedBooking;
     }
 
     public Booking rejectBooking(String id, String reason) {
     Booking booking = getBookingById(id);
     booking.setStatus(BookingStatus.REJECTED);
     booking.setRejectionReason(reason);
-    return bookingRepository.save(booking);
+    Booking savedBooking = bookingRepository.save(booking);
+    notificationService.createBookingRejectedForUser(savedBooking);
+    return savedBooking;
 }
 
     public Booking cancelBooking(String id) {

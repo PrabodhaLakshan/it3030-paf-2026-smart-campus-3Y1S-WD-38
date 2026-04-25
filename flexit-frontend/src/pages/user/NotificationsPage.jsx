@@ -1,27 +1,45 @@
 import { Bell, CalendarClock } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getSessionUser } from "../../utils/sessionUser";
 import {
   formatNotificationTime,
-  getNotificationsForUser,
-  markNotificationAsRead,
-} from "../../utils/notifications";
+  getMyNotifications,
+  markMyNotificationAsRead,
+} from "../../api/notificationApi";
+import { getSessionUser } from "../../utils/sessionUser";
 
 function NotificationsPage() {
   const navigate = useNavigate();
   const sessionUser = getSessionUser();
-  const [notifications, setNotifications] = useState(() =>
-    getNotificationsForUser(sessionUser.userId)
-  );
+  const notificationUserId = sessionUser.userCode || sessionUser.userId;
+  const [notifications, setNotifications] = useState([]);
 
-  const refreshNotifications = () => {
-    setNotifications(getNotificationsForUser(sessionUser.userId));
+  const refreshNotifications = async () => {
+    if (!notificationUserId) {
+      setNotifications([]);
+      return;
+    }
+
+    try {
+      const items = await getMyNotifications(notificationUserId, sessionUser.role, 200);
+      setNotifications(Array.isArray(items) ? items : []);
+    } catch (error) {
+      console.error("Failed to load user notifications:", error);
+    }
   };
 
-  const handleNotificationClick = (notification) => {
-    markNotificationAsRead(notification.id, sessionUser.userId);
+  useEffect(() => {
     refreshNotifications();
+  }, [notificationUserId, sessionUser.userId, sessionUser.role]);
+
+  const handleNotificationClick = async (notification) => {
+    try {
+      await markMyNotificationAsRead(notification.id, notificationUserId, sessionUser.role);
+      refreshNotifications();
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+
     if (notification.actionUrl) {
       navigate(notification.actionUrl);
     }

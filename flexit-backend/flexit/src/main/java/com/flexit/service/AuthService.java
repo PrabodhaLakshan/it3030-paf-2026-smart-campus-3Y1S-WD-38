@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Objects;
 
 @Service
 public class AuthService {
@@ -140,7 +141,9 @@ public class AuthService {
     }
 
     public PasswordStatusResponse getPasswordStatus(String userId) {
-        User user = userRepository.findById(userId)
+        String safeUserId = Objects.requireNonNullElse(userId, "").trim();
+
+        User user = userRepository.findById(safeUserId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         boolean hasPassword = user.getPasswordHash() != null && !user.getPasswordHash().isBlank();
@@ -148,7 +151,9 @@ public class AuthService {
     }
 
     public AuthResponse setOrChangePassword(PasswordChangeRequest request) {
-        User user = userRepository.findById(request.getUserId().trim())
+        String safeUserId = Objects.requireNonNullElse(request.getUserId(), "").trim();
+
+        User user = userRepository.findById(safeUserId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         String existingHash = user.getPasswordHash();
@@ -275,4 +280,5 @@ public class AuthService {
     private UserRole resolveRole(User user) {
         return user.getRole() == null ? UserRole.USER : user.getRole();
     }
+
 }
