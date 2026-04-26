@@ -16,13 +16,16 @@ import java.util.Objects;
 @Service
 public class TicketService {
     private final TicketRepository ticketRepository;
+    private final NotificationService notificationService;
     private static final Map<String, String> DEFAULT_TECHNICIANS = Map.of(
             "TECH001", "Technician 001"
             
     );
 
-    public TicketService(TicketRepository ticketRepository) {
+    public TicketService(TicketRepository ticketRepository,
+                         NotificationService notificationService) {
         this.ticketRepository = ticketRepository;
+        this.notificationService = notificationService;
     }
 
     private int countWords(String text) {
@@ -105,7 +108,9 @@ public class TicketService {
         if (ticket.getAttachmentUrls() != null && ticket.getAttachmentUrls().size() > 3) {
             throw new IllegalArgumentException("Maximum of 3 image attachments allowed.");
         }
-        return ticketRepository.save(ticket);
+        IncidentTicket savedTicket = ticketRepository.save(ticket);
+        notificationService.createTicketCreatedForAdmins(savedTicket);
+        return savedTicket;
     }
 
     public List<IncidentTicket> getAllTickets() {
@@ -336,7 +341,9 @@ public class TicketService {
         prepareTicketForSave(ticket);
         applyMultipartAttachments(ticket, files);
 
-        return ticketRepository.save(ticket);
+        IncidentTicket savedTicket = ticketRepository.save(ticket);
+        notificationService.createTicketCreatedForAdmins(savedTicket);
+        return savedTicket;
     }
 
 // Requirement: Assign technician to ticket

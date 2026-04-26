@@ -4,6 +4,7 @@ import com.flexit.model.Booking;
 import com.flexit.model.Notification;
 import com.flexit.model.NotificationType;
 import com.flexit.model.Resource;
+import com.flexit.model.IncidentTicket;
 import com.flexit.model.UserRole;
 import com.flexit.repository.NotificationRepository;
 import org.springframework.stereotype.Service;
@@ -133,6 +134,22 @@ public class NotificationService {
         );
 
         createForRole(UserRole.USER, NotificationType.GENERAL, title, message, "/user/resources");
+    }
+
+    public void createTicketCreatedForAdmins(IncidentTicket ticket) {
+        if (ticket == null) {
+            return;
+        }
+
+        String title = "New support ticket submitted";
+        String message = String.format(
+                Locale.ENGLISH,
+                "%s submitted a new ticket: %s.",
+                safeValue(ticket.getReportedByUserName()),
+                safeValue(ticket.getTitle())
+        );
+
+        createForRole(UserRole.ADMIN, NotificationType.GENERAL, title, message, "/admin/tickets");
     }
 
     public Notification createLoginNotification(String userId, String roleValue, String fullName) {
