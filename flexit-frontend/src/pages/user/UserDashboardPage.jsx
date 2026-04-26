@@ -13,9 +13,11 @@ import {
   UserRound,
   XCircle,
   Boxes,
+  Ticket,
 } from "lucide-react";
 import { getMyBookings } from "../../api/bookingApi";
 import { getAllResources } from "../../api/resourceApi";
+import { getAllTickets } from "../../api/ticketApi";
 
 const STATUS_STYLES = {
   APPROVED: "bg-emerald-100 text-emerald-700",
@@ -63,8 +65,10 @@ function UserDashboardPage() {
   const [userId] = useState(getStoredUserCode);
   const [bookings, setBookings] = useState([]);
   const [resources, setResources] = useState([]);
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resourcesLoading, setResourcesLoading] = useState(true);
+  const [ticketsLoading, setTicketsLoading] = useState(true);
 
   const fetchBookings = async () => {
     if (!userId) {
@@ -98,9 +102,32 @@ function UserDashboardPage() {
     }
   };
 
+  const fetchTickets = async () => {
+    if (!userId) {
+      setTickets([]);
+      setTicketsLoading(false);
+      return;
+    }
+
+    try {
+      setTicketsLoading(true);
+      const allTickets = await getAllTickets();
+      const ownTickets = (Array.isArray(allTickets) ? allTickets : [])
+        .filter((ticket) => (ticket?.reportedByUserId || "").trim() === (userId || "").trim())
+        .sort((left, right) => new Date(right.createdAt || 0) - new Date(left.createdAt || 0));
+      setTickets(ownTickets);
+    } catch (error) {
+      console.error("Failed to fetch dashboard tickets:", error);
+      setTickets([]);
+    } finally {
+      setTicketsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchBookings();
     fetchResources();
+    fetchTickets();
   }, [userId]);
 
   const summary = useMemo(() => {
@@ -266,7 +293,22 @@ function UserDashboardPage() {
             </div>
           </section>
 
-          <section className="mt-6 grid gap-4 md:grid-cols-2 2xl:grid-cols-5">
+          <section className="mt-6 grid gap-4 md:grid-cols-2 2xl:grid-cols-6">
+    {/* My Tickets Stat Card */}
+    <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-slate-500">My Tickets</p>
+          <p className="mt-3 text-4xl font-bold tracking-tight text-slate-900">
+            {ticketsLoading ? "--" : tickets.length}
+          </p>
+          <p className="mt-2 text-sm text-slate-500">Total support tickets</p>
+        </div>
+        <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 p-3 text-white shadow-sm">
+          <Ticket size={22} />
+        </div>
+      </div>
+    </div>
             {statCards.map((card) => {
               const Icon = card.icon;
 
@@ -365,53 +407,124 @@ function UserDashboardPage() {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#2d9d45]">
-                Booking Progress
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-                Your Summary
-              </h2>
+            <div className="flex flex-col gap-6">
+              <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#2d9d45]">
+                  Booking Progress
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+                  Your Summary
+                </h2>
 
-              <div className="mt-6 rounded-[1.5rem] bg-slate-950 p-5 text-white">
-                <p className="text-sm text-slate-300">Approval Rate</p>
-                <p className="mt-3 text-4xl font-semibold">
-                  {summary.total === 0
-                    ? "0%"
-                    : `${Math.round((summary.approved / summary.total) * 100)}%`}
-                </p>
-                <p className="mt-2 text-sm text-slate-400">
-                  of your booking requests are approved.
-                </p>
+                <div className="mt-6 rounded-[1.5rem] bg-slate-950 p-5 text-white">
+                  <p className="text-sm text-slate-300">Approval Rate</p>
+                  <p className="mt-3 text-4xl font-semibold">
+                    {summary.total === 0
+                      ? "0%"
+                      : `${Math.round((summary.approved / summary.total) * 100)}%`}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-400">
+                    of your booking requests are approved.
+                  </p>
+                </div>
+
+                <div className="mt-4 rounded-[1.5rem] border border-slate-200 p-5">
+                  <p className="text-sm font-medium text-slate-500">
+                    Suggested Action
+                  </p>
+                  <p className="mt-2 text-base font-semibold text-slate-900">
+                    {summary.pending > 0
+                      ? "You have pending bookings. Check back later for admin updates."
+                      : "No pending bookings right now. You can create a new request anytime."}
+                  </p>
+                </div>
+
+                <div className="mt-4 grid gap-3">
+                  <Link
+                    to="/book-resource"
+                    className="flex items-center justify-between rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                  >
+                    Start a New Booking
+                    <ArrowRight size={16} />
+                  </Link>
+
+                  <Link
+                    to="/my-bookings"
+                    className="flex items-center justify-between rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-200"
+                  >
+                    Review Booking History
+                    <ArrowRight size={16} />
+                  </Link>
+                </div>
               </div>
 
-              <div className="mt-4 rounded-[1.5rem] border border-slate-200 p-5">
-                <p className="text-sm font-medium text-slate-500">
-                  Suggested Action
+              <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">
+                  Support
                 </p>
-                <p className="mt-2 text-base font-semibold text-slate-900">
-                  {summary.pending > 0
-                    ? "You have pending bookings. Check back later for admin updates."
-                    : "No pending bookings right now. You can create a new request anytime."}
-                </p>
-              </div>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+                  Ticket Summary
+                </h2>
 
-              <div className="mt-4 grid gap-3">
-                <Link
-                  to="/book-resource"
-                  className="flex items-center justify-between rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
-                >
-                  Start a New Booking
-                  <ArrowRight size={16} />
-                </Link>
+                <div className="mt-6 space-y-3">
+                  {ticketsLoading ? (
+                    <div className="flex items-center gap-3 rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                      <LoaderCircle size={18} className="animate-spin" />
+                      Loading tickets...
+                    </div>
+                  ) : tickets.length === 0 ? (
+                    <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                      No tickets raised yet.
+                    </div>
+                  ) : (
+                    tickets.slice(0, 3).map((ticket) => (
+                      <div
+                        key={ticket.id}
+                        className="flex flex-col gap-2 rounded-[1.5rem] border border-slate-100 bg-slate-50 p-4"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-sm font-semibold text-slate-900 line-clamp-1">
+                            {ticket.title || "Untitled ticket"}
+                          </p>
+                          <span
+                            className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                              ticket.status === "OPEN" 
+                                ? "bg-amber-100 text-amber-700" 
+                                : ticket.status === "RESOLVED" || ticket.status === "CLOSED"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : ticket.status === "REJECTED"
+                                ? "bg-rose-100 text-rose-700"
+                                : "bg-slate-200 text-slate-700"
+                            }`}
+                          >
+                            {ticket.status || "OPEN"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 line-clamp-2">
+                          {ticket.description || "No description provided."}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
 
-                <Link
-                  to="/my-bookings"
-                  className="flex items-center justify-between rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-200"
-                >
-                  Review Booking History
-                  <ArrowRight size={16} />
-                </Link>
+                <div className="mt-4 grid gap-3">
+                  <Link
+                    to="/user/tickets/create"
+                    className="flex items-center justify-between rounded-2xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800 transition hover:bg-blue-100"
+                  >
+                    Raise a New Ticket
+                    <ArrowRight size={16} />
+                  </Link>
+
+                  <Link
+                    to="/user/tickets-dashboard"
+                    className="flex items-center justify-between rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-200"
+                  >
+                    View All Tickets
+                    <ArrowRight size={16} />
+                  </Link>
+                </div>
               </div>
             </div>
           </section>
