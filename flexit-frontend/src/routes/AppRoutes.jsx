@@ -108,6 +108,7 @@ function AppRoutes() {
           <Route element={<RequireRole role="TECHNICIAN" />}>
             <Route element={<TechnicianLayout />}>
               <Route path="/technician/dashboard" element={<TechnicianDashboard />} />
+              <Route path="/technician/notifications" element={<NotificationsPage />} />
               <Route path="/technician/tickets/:id" element={<TicketDetailsPage />} />
               <Route path="/technician/tickets/edit/:id" element={<EditTicketPage />} />
             </Route>

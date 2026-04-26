@@ -1,13 +1,91 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  formatNotificationTime,
+  getMyNotifications,
+  getMyUnreadNotificationCount,
+  markMyNotificationAsRead,
+} from "../../api/notificationApi";
 import { clearSessionUser, getSessionUser } from "../../utils/sessionUser";
 
 function TechnicianNavbar() {
   const navigate = useNavigate();
   const sessionUser = getSessionUser();
+  const notificationUserId = sessionUser.userCode || sessionUser.userId;
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const dropdownRef = useRef(null);
+
+  const latestNotifications = useMemo(() => notifications.slice(0, 3), [notifications]);
+
+  const refreshNotifications = async () => {
+    if (!notificationUserId) {
+      setNotifications([]);
+      setNotificationCount(0);
+      return;
+    }
+
+    try {
+      const [items, unread] = await Promise.all([
+        getMyNotifications(notificationUserId, sessionUser.role, 30),
+        getMyUnreadNotificationCount(notificationUserId, sessionUser.role),
+      ]);
+
+      setNotifications(Array.isArray(items) ? items : []);
+      setNotificationCount(unread);
+    } catch (error) {
+      console.error("Failed to load notifications:", error);
+    }
+  };
+
+  useEffect(() => {
+    refreshNotifications();
+  }, [notificationUserId, sessionUser.role]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsNotificationOpen(false);
+      }
+    };
+
+    window.addEventListener("mousedown", handleOutsideClick);
+    window.addEventListener("focus", refreshNotifications);
+
+    return () => {
+      window.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("focus", refreshNotifications);
+    };
+  }, [notificationUserId, sessionUser.role]);
 
   const handleLogout = () => {
     clearSessionUser();
     navigate("/login", { replace: true });
+  };
+
+  const handleNotificationClick = async (notification) => {
+    try {
+      await markMyNotificationAsRead(notification.id, notificationUserId, sessionUser.role);
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+
+    refreshNotifications();
+    setIsNotificationOpen(false);
+
+    if (notification.actionUrl) {
+      navigate(notification.actionUrl);
+      return;
+    }
+
+    navigate("/technician/notifications");
+  };
+
+  const handleViewAllNotifications = () => {
+    setIsNotificationOpen(false);
+    navigate("/technician/notifications");
   };
 
   return (
@@ -38,6 +116,68 @@ function TechnicianNavbar() {
           </div>
 
           <div className="flex items-center gap-4">
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsNotificationOpen((previous) => !previous)}
+                className="relative flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
+                aria-label="View notifications"
+              >
+                <Bell size={18} />
+                {notificationCount > 0 ? (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold leading-none text-white">
+                    {notificationCount > 99 ? "99+" : notificationCount}
+                  </span>
+                ) : null}
+              </button>
+
+              {isNotificationOpen ? (
+                <div className="absolute right-0 mt-3 w-[320px] rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl">
+                  <div className="mb-2 flex items-center justify-between px-1">
+                    <p className="text-sm font-semibold text-slate-800">Notifications</p>
+                    <span className="text-xs font-medium text-slate-500">{notificationCount} unread</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {latestNotifications.length === 0 ? (
+                      <div className="rounded-xl bg-slate-50 px-3 py-4 text-center text-xs text-slate-500">
+                        No notifications yet.
+                      </div>
+                    ) : (
+                      latestNotifications.map((notification) => (
+                        <button
+                          key={notification.id}
+                          onClick={() => handleNotificationClick(notification)}
+                          className={`w-full rounded-xl border px-3 py-2 text-left transition ${
+                            notification.isRead
+                              ? "border-slate-200 bg-slate-50"
+                              : "border-emerald-200 bg-emerald-50/60"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm font-semibold text-slate-800">{notification.title}</p>
+                            <span className={`text-[10px] font-semibold ${notification.isRead ? "text-slate-400" : "text-emerald-600"}`}>
+                              {notification.isRead ? "Read" : "Unread"}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs text-slate-600">{notification.message}</p>
+                          <p className="mt-1 text-[11px] text-slate-500">
+                            {formatNotificationTime(notification.createdAt)}
+                          </p>
+                        </button>
+                      ))
+                    )}
+                  </div>
+
+                  <button
+                    onClick={handleViewAllNotifications}
+                    className="mt-3 w-full rounded-xl bg-[#0a192f] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#10274a]"
+                  >
+                    View all notifications
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
             <button className="flex items-center gap-3 p-1.5 pr-4 rounded-full bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-md transition-all duration-300 group">
               <div className="h-10 w-10 rounded-full bg-[#0a192f] flex justify-center items-center text-[#61CE70] font-bold shadow-inner border-2 border-[#61CE70]/20">
                 {(sessionUser.userName || "T").charAt(0).toUpperCase()}
