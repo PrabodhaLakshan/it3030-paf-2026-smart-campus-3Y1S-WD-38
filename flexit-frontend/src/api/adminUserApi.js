@@ -16,3 +16,8 @@ export const deleteTechnician = async (technicianId) => {
   const response = await axios.delete(`${BASE_URL}/technicians/${technicianId}`);
   return response.data;
 };
+
+export const deleteUser = async (userId) => {
+  const response = await axios.delete(`${BASE_URL}/${userId}`);
+  return response.data;
+};

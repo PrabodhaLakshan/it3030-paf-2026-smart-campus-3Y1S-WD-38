@@ -25,3 +25,11 @@ export const setOrChangePassword = async (payload) => {
   const response = await axios.post(`${BASE_URL}/password`, payload);
   return response.data;
 };
+
+export const updateUserPresence = async ({ userId, online }) => {
+  const response = await axios.post(`${BASE_URL}/presence`, {
+    userId,
+    online,
+  });
+  return response.data;
+};

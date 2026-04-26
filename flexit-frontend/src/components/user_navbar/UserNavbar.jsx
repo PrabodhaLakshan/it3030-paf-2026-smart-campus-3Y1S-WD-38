@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getPasswordStatus } from "../../api/authApi";
+import { getPasswordStatus, updateUserPresence } from "../../api/authApi";
 import {
   formatNotificationTime,
   getMyNotifications,
@@ -88,7 +88,14 @@ function UserNavbar() {
     };
   }, [sessionUser.userId]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const presenceUserId = sessionUser.userId || sessionUser.userCode;
+    if (presenceUserId) {
+      await updateUserPresence({ userId: presenceUserId, online: false }).catch((error) => {
+        console.error("Failed to update user presence:", error);
+      });
+    }
+
     clearSessionUser();
     navigate("/login", { replace: true });
   };

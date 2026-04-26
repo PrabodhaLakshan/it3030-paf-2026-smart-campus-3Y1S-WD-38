@@ -9,6 +9,8 @@ public class RegisteredUserResponse {
     private String fullName;
     private String email;
     private String role;
+    private boolean online;
+    private LocalDateTime lastSeenAt;
     private LocalDateTime createdAt;
 
     public RegisteredUserResponse() {
@@ -19,12 +21,16 @@ public class RegisteredUserResponse {
                                   String fullName,
                                   String email,
                                   String role,
+                                  boolean online,
+                                  LocalDateTime lastSeenAt,
                                   LocalDateTime createdAt) {
         this.id = id;
         this.userCode = userCode;
         this.fullName = fullName;
         this.email = email;
         this.role = role;
+        this.online = online;
+        this.lastSeenAt = lastSeenAt;
         this.createdAt = createdAt;
     }
 
@@ -66,6 +72,22 @@ public class RegisteredUserResponse {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public boolean isOnline() {
+        return online;
+    }
+
+    public void setOnline(boolean online) {
+        this.online = online;
+    }
+
+    public LocalDateTime getLastSeenAt() {
+        return lastSeenAt;
+    }
+
+    public void setLastSeenAt(LocalDateTime lastSeenAt) {
+        this.lastSeenAt = lastSeenAt;
     }
 
     public LocalDateTime getCreatedAt() {

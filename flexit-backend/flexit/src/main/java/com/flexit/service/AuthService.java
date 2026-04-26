@@ -6,6 +6,7 @@ import com.flexit.dto.GoogleLoginRequest;
 import com.flexit.dto.LoginRequest;
 import com.flexit.dto.PasswordChangeRequest;
 import com.flexit.dto.PasswordStatusResponse;
+import com.flexit.dto.PresenceUpdateRequest;
 import com.flexit.dto.RegisteredTechnicianResponse;
 import com.flexit.dto.RegisteredUserResponse;
 import com.flexit.dto.SignupRequest;
@@ -70,6 +71,8 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.USER);
         user.setUserCode(generateNextUserCode());
+        user.setOnline(false);
+        user.setLastSeenAt(LocalDateTime.now());
         user.setCreatedAt(LocalDateTime.now());
 
         User savedUser = userRepository.save(user);
@@ -103,6 +106,10 @@ public class AuthService {
         String userCode = ensureUserCode(user);
         UserRole role = resolveRole(user);
 
+        user.setOnline(true);
+        user.setLastSeenAt(LocalDateTime.now());
+        userRepository.save(user);
+
         return new AuthResponse(
                 "Login successful",
                 user.getId(),
@@ -133,6 +140,10 @@ public class AuthService {
 
         String userCode = ensureUserCode(user);
         UserRole role = resolveRole(user);
+
+        user.setOnline(true);
+        user.setLastSeenAt(LocalDateTime.now());
+        userRepository.save(user);
 
         return new AuthResponse(
                 "Google login successful",
@@ -184,6 +195,8 @@ public class AuthService {
                     user.getFullName(),
                     user.getEmail(),
                     user.getRole() == null ? UserRole.USER.name() : user.getRole().name(),
+                    user.isOnline(),
+                    user.getLastSeenAt(),
                     user.getCreatedAt()
                 ))
                 .toList();
@@ -207,6 +220,8 @@ public class AuthService {
         technician.setAssignedArea(request.getAssignedArea().trim());
         technician.setRole(UserRole.TECHNICIAN);
         technician.setUserCode(generateNextUserCode());
+        technician.setOnline(false);
+        technician.setLastSeenAt(LocalDateTime.now());
         technician.setCreatedAt(LocalDateTime.now());
 
         User savedTechnician = userRepository.save(technician);
@@ -236,6 +251,37 @@ public class AuthService {
         }
 
         userRepository.delete(technician);
+    }
+
+    public void deleteRegularUser(String userId) {
+        String safeUserId = Objects.requireNonNullElse(userId, "").trim();
+        if (safeUserId.isBlank()) {
+            throw new IllegalArgumentException("User id is required");
+        }
+
+        User user = userRepository.findById(safeUserId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getRole() != UserRole.USER) {
+            throw new IllegalArgumentException("Only regular users can be removed from this list");
+        }
+
+        userRepository.delete(user);
+    }
+
+    public void updatePresence(PresenceUpdateRequest request) {
+        String safeUserId = Objects.requireNonNullElse(request.getUserId(), "").trim();
+        if (safeUserId.isBlank()) {
+            throw new IllegalArgumentException("User id is required");
+        }
+
+        User user = userRepository.findById(safeUserId)
+                .or(() -> userRepository.findByUserCodeIgnoreCase(safeUserId))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.setOnline(request.isOnline());
+        user.setLastSeenAt(LocalDateTime.now());
+        userRepository.save(user);
     }
 
     public AuthResponse setOrChangePassword(PasswordChangeRequest request) {
@@ -319,6 +365,8 @@ public class AuthService {
         user.setPasswordHash(null);
         user.setRole(UserRole.USER);
         user.setUserCode(generateNextUserCode());
+        user.setOnline(false);
+        user.setLastSeenAt(LocalDateTime.now());
         user.setCreatedAt(LocalDateTime.now());
         return userRepository.save(user);
     }

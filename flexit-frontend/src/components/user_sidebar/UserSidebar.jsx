@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { clearSessionUser } from "../../utils/sessionUser";
+import { updateUserPresence } from "../../api/authApi";
+import { clearSessionUser, getSessionUser } from "../../utils/sessionUser";
 import { useNavigate } from "react-router-dom";
 import {
     ClipboardList,
@@ -42,8 +43,16 @@ const navigationItems = [
 
 function UserSidebar() {
     const navigate = useNavigate();
+    const sessionUser = getSessionUser();
     
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        const presenceUserId = sessionUser.userId || sessionUser.userCode;
+        if (presenceUserId) {
+            await updateUserPresence({ userId: presenceUserId, online: false }).catch((error) => {
+                console.error("Failed to update user presence:", error);
+            });
+        }
+
         clearSessionUser();
         navigate("/login", { replace: true });
     };

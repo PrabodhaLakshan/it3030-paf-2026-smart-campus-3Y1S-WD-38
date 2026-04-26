@@ -37,6 +37,10 @@ public class User {
 
     private UserRole role;
 
+    private boolean online;
+
+    private LocalDateTime lastSeenAt;
+
     private LocalDateTime createdAt;
 
     public User() {
@@ -120,6 +124,22 @@ public class User {
 
     public void setRole(UserRole role) {
         this.role = role;
+    }
+
+    public boolean isOnline() {
+        return online;
+    }
+
+    public void setOnline(boolean online) {
+        this.online = online;
+    }
+
+    public LocalDateTime getLastSeenAt() {
+        return lastSeenAt;
+    }
+
+    public void setLastSeenAt(LocalDateTime lastSeenAt) {
+        this.lastSeenAt = lastSeenAt;
     }
 
     public LocalDateTime getCreatedAt() {

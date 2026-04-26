@@ -390,7 +390,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { googleLogin, loginUser } from '../api/authApi';
+import { googleLogin, loginUser, updateUserPresence } from '../api/authApi';
 import { createLoginNotification } from '../api/notificationApi';
 import './Auth.css';
 
@@ -438,6 +438,13 @@ function Login() {
         fullName: resolvedName,
       }).catch((error) => {
         console.error('Failed to create login notification:', error);
+      });
+    }
+
+    const presenceUserId = resolvedUserId || resolvedUserCode;
+    if (presenceUserId) {
+      await updateUserPresence({ userId: presenceUserId, online: true }).catch((error) => {
+        console.error('Failed to update user presence:', error);
       });
     }
 

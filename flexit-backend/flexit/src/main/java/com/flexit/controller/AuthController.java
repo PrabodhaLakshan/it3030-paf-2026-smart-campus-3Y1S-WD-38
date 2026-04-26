@@ -6,6 +6,7 @@ import com.flexit.dto.GoogleLoginRequest;
 import com.flexit.dto.LoginRequest;
 import com.flexit.dto.PasswordChangeRequest;
 import com.flexit.dto.PasswordStatusResponse;
+import com.flexit.dto.PresenceUpdateRequest;
 import com.flexit.dto.SignupRequest;
 import com.flexit.dto.UserManagementSummaryResponse;
 import com.flexit.service.AuthService;
@@ -72,6 +73,18 @@ public class AuthController {
     @DeleteMapping("/admin/users/technicians/{id}")
     public ResponseEntity<Void> deleteTechnician(@PathVariable String id) {
         authService.deleteTechnician(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/admin/users/{id}")
+    public ResponseEntity<Void> deleteRegularUser(@PathVariable String id) {
+        authService.deleteRegularUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/presence")
+    public ResponseEntity<Void> updatePresence(@Valid @RequestBody PresenceUpdateRequest request) {
+        authService.updatePresence(request);
         return ResponseEntity.noContent().build();
     }
 }

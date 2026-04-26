@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createTechnician, deleteTechnician, getUserManagementSummary } from "../../api/adminUserApi";
+import { createTechnician, deleteTechnician, deleteUser, getUserManagementSummary } from "../../api/adminUserApi";
 
 const TECHNICIAN_CATEGORIES = [
   "Electrical",
@@ -105,6 +105,7 @@ function AdminUserManagementPage() {
   const [formData, setFormData] = useState(INITIAL_FORM);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState("");
+  const [deletingUserId, setDeletingUserId] = useState("");
   const [formError, setFormError] = useState("");
 
   const loadSummary = async () => {
@@ -128,6 +129,23 @@ function AdminUserManagementPage() {
 
   useEffect(() => {
     loadSummary();
+  }, []);
+
+  useEffect(() => {
+    const refreshOnFocus = () => {
+      loadSummary();
+    };
+
+    const intervalId = window.setInterval(() => {
+      loadSummary();
+    }, 15000);
+
+    window.addEventListener("focus", refreshOnFocus);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refreshOnFocus);
+    };
   }, []);
 
   const technicianRows = useMemo(() => summary.technicians || [], [summary.technicians]);
@@ -213,6 +231,24 @@ function AdminUserManagementPage() {
       setError(err?.response?.data?.message || err?.message || "Failed to remove technician.");
     } finally {
       setDeletingId("");
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (!user?.id) return;
+
+    const confirmed = window.confirm(`Remove user ${user.fullName}?`);
+    if (!confirmed) return;
+
+    setDeletingUserId(user.id);
+    setError("");
+    try {
+      await deleteUser(user.id);
+      await loadSummary();
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to remove user.");
+    } finally {
+      setDeletingUserId("");
     }
   };
 
@@ -327,20 +363,22 @@ function AdminUserManagementPage() {
                 <th className="px-5 py-3">User ID</th>
                 <th className="px-5 py-3">Full Name</th>
                 <th className="px-5 py-3">Email Address</th>
+                <th className="px-5 py-3">Active</th>
                 <th className="px-5 py-3">Role</th>
                 <th className="px-5 py-3">Registered At</th>
+                <th className="px-5 py-3">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-10 text-center text-slate-500">
+                  <td colSpan={7} className="px-5 py-10 text-center text-slate-500">
                     Loading users...
                   </td>
                 </tr>
               ) : summary.users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-10 text-center text-slate-500">
+                  <td colSpan={7} className="px-5 py-10 text-center text-slate-500">
                     No regular users registered yet.
                   </td>
                 </tr>
@@ -350,8 +388,25 @@ function AdminUserManagementPage() {
                     <td className="px-5 py-4 font-medium text-slate-700">{user.userCode || "-"}</td>
                     <td className="px-5 py-4 text-slate-900">{user.fullName}</td>
                     <td className="px-5 py-4 text-slate-600">{user.email}</td>
+                    <td className="px-5 py-4 text-slate-600">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        user.online ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
+                      }`}>
+                        {user.online ? "Online" : "Offline"}
+                      </span>
+                    </td>
                     <td className="px-5 py-4 text-slate-600">{user.role || "USER"}</td>
                     <td className="px-5 py-4 text-slate-600">{formatDate(user.createdAt)}</td>
+                    <td className="px-5 py-4">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteUser(user)}
+                        disabled={deletingUserId === user.id}
+                        className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 transition-all hover:-translate-y-0.5 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {deletingUserId === user.id ? "Removing..." : "Remove"}
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
