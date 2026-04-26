@@ -36,6 +36,16 @@ export const createLoginNotification = async ({ userId, role, fullName }) => {
   return response.data;
 };
 
+export const createReactivationRequestNotification = async ({ userId, userCode, fullName }) => {
+  const response = await axios.post(`${API_BASE_URL}/reactivation-request`, {
+    userId,
+    userCode,
+    fullName,
+  });
+
+  return response.data;
+};
+
 export const createAdminBroadcastNotification = async ({
   senderUserId,
   senderRole,

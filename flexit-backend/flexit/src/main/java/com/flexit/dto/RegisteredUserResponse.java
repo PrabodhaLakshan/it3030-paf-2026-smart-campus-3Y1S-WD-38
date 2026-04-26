@@ -9,6 +9,8 @@ public class RegisteredUserResponse {
     private String fullName;
     private String email;
     private String role;
+    private boolean active;
+    private LocalDateTime bannedUntil;
     private boolean online;
     private LocalDateTime lastSeenAt;
     private LocalDateTime createdAt;
@@ -21,6 +23,8 @@ public class RegisteredUserResponse {
                                   String fullName,
                                   String email,
                                   String role,
+                                  boolean active,
+                                  LocalDateTime bannedUntil,
                                   boolean online,
                                   LocalDateTime lastSeenAt,
                                   LocalDateTime createdAt) {
@@ -29,6 +33,8 @@ public class RegisteredUserResponse {
         this.fullName = fullName;
         this.email = email;
         this.role = role;
+        this.active = active;
+        this.bannedUntil = bannedUntil;
         this.online = online;
         this.lastSeenAt = lastSeenAt;
         this.createdAt = createdAt;
@@ -72,6 +78,22 @@ public class RegisteredUserResponse {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public LocalDateTime getBannedUntil() {
+        return bannedUntil;
+    }
+
+    public void setBannedUntil(LocalDateTime bannedUntil) {
+        this.bannedUntil = bannedUntil;
     }
 
     public boolean isOnline() {

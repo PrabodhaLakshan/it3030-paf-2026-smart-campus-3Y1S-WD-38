@@ -1,6 +1,7 @@
 package com.flexit.service;
 
 import com.flexit.dto.AuthResponse;
+import com.flexit.dto.AccountAccessStatusResponse;
 import com.flexit.dto.CreateTechnicianRequest;
 import com.flexit.dto.GoogleLoginRequest;
 import com.flexit.dto.LoginRequest;
@@ -10,6 +11,7 @@ import com.flexit.dto.PresenceUpdateRequest;
 import com.flexit.dto.RegisteredTechnicianResponse;
 import com.flexit.dto.RegisteredUserResponse;
 import com.flexit.dto.SignupRequest;
+import com.flexit.dto.UserDeactivationRequest;
 import com.flexit.dto.UserManagementSummaryResponse;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -71,6 +73,8 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.USER);
         user.setUserCode(generateNextUserCode());
+        user.setActive(true);
+        user.setBannedUntil(null);
         user.setOnline(false);
         user.setLastSeenAt(LocalDateTime.now());
         user.setCreatedAt(LocalDateTime.now());
@@ -85,7 +89,9 @@ public class AuthService {
                 savedUser.getFullName(),
                 savedUser.getEmail(),
             role.name(),
-            true
+            true,
+            savedUser.isActive(),
+            savedUser.getBannedUntil()
         );
     }
 
@@ -94,6 +100,8 @@ public class AuthService {
 
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+
+        applyAutoReactivateIfExpired(user);
 
         if (user.getPasswordHash() == null || user.getPasswordHash().isBlank()) {
             throw new InvalidCredentialsException("Use Google Login for this account");
@@ -117,7 +125,9 @@ public class AuthService {
                 user.getFullName(),
                 user.getEmail(),
             role.name(),
-            true
+            true,
+            user.isActive(),
+            user.getBannedUntil()
         );
     }
 
@@ -138,6 +148,8 @@ public class AuthService {
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
                 .orElseGet(() -> createGoogleUser(normalizedEmail, fullName));
 
+        applyAutoReactivateIfExpired(user);
+
         String userCode = ensureUserCode(user);
         UserRole role = resolveRole(user);
 
@@ -152,7 +164,9 @@ public class AuthService {
                 user.getFullName(),
                 user.getEmail(),
             role.name(),
-            user.getPasswordHash() != null && !user.getPasswordHash().isBlank()
+            user.getPasswordHash() != null && !user.getPasswordHash().isBlank(),
+            user.isActive(),
+            user.getBannedUntil()
         );
     }
 
@@ -161,6 +175,8 @@ public class AuthService {
 
         User user = userRepository.findById(safeUserId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        applyAutoReactivateIfExpired(user);
 
         boolean hasPassword = user.getPasswordHash() != null && !user.getPasswordHash().isBlank();
         return new PasswordStatusResponse(user.getId(), hasPassword);
@@ -188,6 +204,7 @@ public class AuthService {
 
             List<RegisteredUserResponse> users = userRepository.findByRole(UserRole.USER)
                 .stream()
+                .peek(this::applyAutoReactivateIfExpired)
                 .sorted(Comparator.comparing(User::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(user -> new RegisteredUserResponse(
                     user.getId(),
@@ -195,6 +212,8 @@ public class AuthService {
                     user.getFullName(),
                     user.getEmail(),
                     user.getRole() == null ? UserRole.USER.name() : user.getRole().name(),
+                    user.isActive(),
+                    user.getBannedUntil(),
                     user.isOnline(),
                     user.getLastSeenAt(),
                     user.getCreatedAt()
@@ -220,6 +239,8 @@ public class AuthService {
         technician.setAssignedArea(request.getAssignedArea().trim());
         technician.setRole(UserRole.TECHNICIAN);
         technician.setUserCode(generateNextUserCode());
+        technician.setActive(true);
+        technician.setBannedUntil(null);
         technician.setOnline(false);
         technician.setLastSeenAt(LocalDateTime.now());
         technician.setCreatedAt(LocalDateTime.now());
@@ -233,7 +254,96 @@ public class AuthService {
                 savedTechnician.getFullName(),
                 savedTechnician.getEmail(),
                 UserRole.TECHNICIAN.name(),
-            false
+            false,
+            savedTechnician.isActive(),
+            savedTechnician.getBannedUntil()
+        );
+    }
+
+    public AccountAccessStatusResponse getAccountAccessStatus(String userIdOrCode) {
+        User user = resolveUserByIdOrCode(userIdOrCode);
+        applyAutoReactivateIfExpired(user);
+
+        UserRole role = resolveRole(user);
+        return new AccountAccessStatusResponse(
+                user.getId(),
+                user.getUserCode(),
+                role.name(),
+                user.isActive(),
+                user.getBannedUntil()
+        );
+    }
+
+    public AccountAccessStatusResponse deactivateUser(String userId, UserDeactivationRequest request) {
+        String safeUserId = Objects.requireNonNullElse(userId, "").trim();
+        if (safeUserId.isBlank()) {
+            throw new IllegalArgumentException("User id is required");
+        }
+
+        User user = userRepository.findById(safeUserId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (resolveRole(user) != UserRole.USER) {
+            throw new IllegalArgumentException("Only USER role accounts can be deactivated from this table");
+        }
+
+        String durationOption = request == null ? "" : Objects.requireNonNullElse(request.getDurationOption(), "").trim().toUpperCase();
+        if (durationOption.isBlank()) {
+            throw new IllegalArgumentException("Duration option is required");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime bannedUntil = switch (durationOption) {
+            case "UNTIL_REACTIVE" -> null;
+            case "1_MIN" -> now.plusMinutes(1);
+            case "15_MIN" -> now.plusMinutes(15);
+            case "30_MIN" -> now.plusMinutes(30);
+            case "1_HOUR" -> now.plusHours(1);
+            case "2_HOUR" -> now.plusHours(2);
+            case "1_DAY" -> now.plusDays(1);
+            case "5_DAY" -> now.plusDays(5);
+            case "1_WEEK" -> now.plusWeeks(1);
+            default -> throw new IllegalArgumentException("Invalid duration option");
+        };
+
+        user.setActive(false);
+        user.setBannedUntil(bannedUntil);
+        user.setOnline(false);
+        user.setLastSeenAt(now);
+        User savedUser = userRepository.save(user);
+
+        return new AccountAccessStatusResponse(
+                savedUser.getId(),
+                savedUser.getUserCode(),
+                UserRole.USER.name(),
+                savedUser.isActive(),
+                savedUser.getBannedUntil()
+        );
+    }
+
+    public AccountAccessStatusResponse reactivateUser(String userId) {
+        String safeUserId = Objects.requireNonNullElse(userId, "").trim();
+        if (safeUserId.isBlank()) {
+            throw new IllegalArgumentException("User id is required");
+        }
+
+        User user = userRepository.findById(safeUserId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (resolveRole(user) != UserRole.USER) {
+            throw new IllegalArgumentException("Only USER role accounts can be reactivated from this table");
+        }
+
+        user.setActive(true);
+        user.setBannedUntil(null);
+        User savedUser = userRepository.save(user);
+
+        return new AccountAccessStatusResponse(
+                savedUser.getId(),
+                savedUser.getUserCode(),
+                UserRole.USER.name(),
+                savedUser.isActive(),
+                savedUser.getBannedUntil()
         );
     }
 
@@ -279,6 +389,8 @@ public class AuthService {
                 .or(() -> userRepository.findByUserCodeIgnoreCase(safeUserId))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        applyAutoReactivateIfExpired(user);
+
         user.setOnline(request.isOnline());
         user.setLastSeenAt(LocalDateTime.now());
         userRepository.save(user);
@@ -319,7 +431,9 @@ public class AuthService {
                 savedUser.getFullName(),
                 savedUser.getEmail(),
             role.name(),
-            true
+            true,
+            savedUser.isActive(),
+            savedUser.getBannedUntil()
         );
     }
 
@@ -365,10 +479,38 @@ public class AuthService {
         user.setPasswordHash(null);
         user.setRole(UserRole.USER);
         user.setUserCode(generateNextUserCode());
+        user.setActive(true);
+        user.setBannedUntil(null);
         user.setOnline(false);
         user.setLastSeenAt(LocalDateTime.now());
         user.setCreatedAt(LocalDateTime.now());
         return userRepository.save(user);
+    }
+
+    private User resolveUserByIdOrCode(String userIdOrCode) {
+        String safeValue = Objects.requireNonNullElse(userIdOrCode, "").trim();
+        if (safeValue.isBlank()) {
+            throw new IllegalArgumentException("User identifier is required");
+        }
+
+        return userRepository.findById(safeValue)
+                .or(() -> userRepository.findByUserCodeIgnoreCase(safeValue))
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
+
+    private void applyAutoReactivateIfExpired(User user) {
+        if (user == null || user.isActive() || user.getBannedUntil() == null) {
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (now.isBefore(user.getBannedUntil())) {
+            return;
+        }
+
+        user.setActive(true);
+        user.setBannedUntil(null);
+        userRepository.save(user);
     }
 
     private String ensureUserCode(User user) {

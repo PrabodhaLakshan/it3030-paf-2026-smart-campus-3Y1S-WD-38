@@ -268,6 +268,42 @@ public class NotificationService {
         return createForUser(normalizedUserId, NotificationType.LOGIN, title, message, actionUrl);
     }
 
+    public Notification createReactivationRequestNotification(String userId, String userCode, String fullName) {
+        String normalizedUserId = normalize(userId);
+        if (normalizedUserId.isBlank()) {
+            throw new IllegalArgumentException("User id is required");
+        }
+
+        String normalizedUserCode = normalize(userCode);
+        String normalizedFullName = normalize(fullName);
+        if (normalizedFullName.isBlank()) {
+            normalizedFullName = "User";
+        }
+
+        String title = "Reactivation request";
+        String message = String.format(
+                Locale.ENGLISH,
+                "%s (%s) requested account reactivation.",
+                normalizedFullName,
+                normalizedUserCode.isBlank() ? normalizedUserId : normalizedUserCode
+        );
+
+        Notification notification = new Notification();
+        notification.setRecipientUserId(null);
+        notification.setRecipientRole(UserRole.ADMIN);
+        notification.setType(NotificationType.GENERAL);
+        notification.setTitle(title);
+        notification.setSubject(title);
+        notification.setMessage(message);
+        notification.setActionUrl(normalizeActionUrl("/admin/users"));
+        notification.setRead(false);
+        notification.setSenderUserId(normalizedUserId);
+        notification.setSenderName(normalizedFullName);
+        notification.setSenderRole(UserRole.USER);
+        notification.setCreatedAt(LocalDateTime.now());
+        return notificationRepository.save(notification);
+    }
+
     public List<Notification> getNotificationsForUser(String userId, String roleValue, Integer limit) {
         UserRole role = parseRole(roleValue);
         String normalizedUserId = normalize(userId);

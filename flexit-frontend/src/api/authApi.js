@@ -33,3 +33,8 @@ export const updateUserPresence = async ({ userId, online }) => {
   });
   return response.data;
 };
+
+export const getAccountAccessStatus = async (userIdOrCode) => {
+  const response = await axios.get(`${BASE_URL}/status/${userIdOrCode}`);
+  return response.data;
+};

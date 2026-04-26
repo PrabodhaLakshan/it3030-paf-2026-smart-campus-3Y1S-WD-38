@@ -1,6 +1,7 @@
 package com.flexit.controller;
 
 import com.flexit.dto.AuthResponse;
+import com.flexit.dto.AccountAccessStatusResponse;
 import com.flexit.dto.CreateTechnicianRequest;
 import com.flexit.dto.GoogleLoginRequest;
 import com.flexit.dto.LoginRequest;
@@ -8,6 +9,7 @@ import com.flexit.dto.PasswordChangeRequest;
 import com.flexit.dto.PasswordStatusResponse;
 import com.flexit.dto.PresenceUpdateRequest;
 import com.flexit.dto.SignupRequest;
+import com.flexit.dto.UserDeactivationRequest;
 import com.flexit.dto.UserManagementSummaryResponse;
 import com.flexit.service.AuthService;
 import jakarta.validation.Valid;
@@ -80,6 +82,23 @@ public class AuthController {
     public ResponseEntity<Void> deleteRegularUser(@PathVariable String id) {
         authService.deleteRegularUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/admin/users/{id}/deactivation")
+    public ResponseEntity<AccountAccessStatusResponse> deactivateRegularUser(
+            @PathVariable String id,
+            @Valid @RequestBody UserDeactivationRequest request) {
+        return ResponseEntity.ok(authService.deactivateUser(id, request));
+    }
+
+    @PostMapping("/admin/users/{id}/reactivate")
+    public ResponseEntity<AccountAccessStatusResponse> reactivateRegularUser(@PathVariable String id) {
+        return ResponseEntity.ok(authService.reactivateUser(id));
+    }
+
+    @GetMapping("/status/{userIdOrCode}")
+    public ResponseEntity<AccountAccessStatusResponse> getAccountAccessStatus(@PathVariable String userIdOrCode) {
+        return ResponseEntity.ok(authService.getAccountAccessStatus(userIdOrCode));
     }
 
     @PostMapping("/presence")

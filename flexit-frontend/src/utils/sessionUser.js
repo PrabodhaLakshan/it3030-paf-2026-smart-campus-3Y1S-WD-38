@@ -41,6 +41,33 @@ function firstNonEmpty(values) {
   return "";
 }
 
+function parseBoolean(value, fallback = true) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true") return true;
+    if (normalized === "false") return false;
+  }
+
+  return fallback;
+}
+
+function parseDateString(value) {
+  if (!value || typeof value !== "string") {
+    return "";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  return parsed.toISOString();
+}
+
 export function getSessionUser() {
   const fromFlexitUser = safeParse(localStorage.getItem("flexitUser"));
   const fromCurrentUser = safeParse(localStorage.getItem("currentUser"));
@@ -67,6 +94,8 @@ export function getSessionUser() {
   const userName = firstNonEmpty([params.get("userName"), merged.userName, merged.name, merged.fullName]);
   const userEmail = firstNonEmpty([params.get("email"), merged.userEmail, merged.email]);
   const hasPassword = typeof merged.hasPassword === "boolean" ? merged.hasPassword : undefined;
+  const isActive = parseBoolean(merged.isActive ?? merged.active, true);
+  const bannedUntil = parseDateString(merged.bannedUntil);
 
   return {
     role,
@@ -75,10 +104,12 @@ export function getSessionUser() {
     userName,
     userEmail,
     hasPassword,
+    isActive,
+    bannedUntil,
   };
 }
 
-export function setSessionUser({ role, userId, userCode, userName, userEmail, hasPassword }) {
+export function setSessionUser({ role, userId, userCode, userName, userEmail, hasPassword, isActive, bannedUntil }) {
   const nextUser = {
     role: normalizeRole(role),
     userId: firstNonEmpty([userId]),
@@ -86,6 +117,8 @@ export function setSessionUser({ role, userId, userCode, userName, userEmail, ha
     userName: firstNonEmpty([userName]),
     userEmail: firstNonEmpty([userEmail]),
     hasPassword: typeof hasPassword === "boolean" ? hasPassword : undefined,
+    isActive: parseBoolean(isActive, true),
+    bannedUntil: parseDateString(bannedUntil),
   };
 
   localStorage.setItem("flexitUser", JSON.stringify(nextUser));

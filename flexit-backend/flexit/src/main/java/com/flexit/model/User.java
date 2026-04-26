@@ -37,6 +37,10 @@ public class User {
 
     private UserRole role;
 
+    private boolean active = true;
+
+    private LocalDateTime bannedUntil;
+
     private boolean online;
 
     private LocalDateTime lastSeenAt;
@@ -124,6 +128,22 @@ public class User {
 
     public void setRole(UserRole role) {
         this.role = role;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public LocalDateTime getBannedUntil() {
+        return bannedUntil;
+    }
+
+    public void setBannedUntil(LocalDateTime bannedUntil) {
+        this.bannedUntil = bannedUntil;
     }
 
     public boolean isOnline() {

@@ -21,3 +21,15 @@ export const deleteUser = async (userId) => {
   const response = await axios.delete(`${BASE_URL}/${userId}`);
   return response.data;
 };
+
+export const deactivateUser = async (userId, durationOption) => {
+  const response = await axios.post(`${BASE_URL}/${userId}/deactivation`, {
+    durationOption,
+  });
+  return response.data;
+};
+
+export const reactivateUser = async (userId) => {
+  const response = await axios.post(`${BASE_URL}/${userId}/reactivate`);
+  return response.data;
+};

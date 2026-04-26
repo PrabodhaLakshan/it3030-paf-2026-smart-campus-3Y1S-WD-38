@@ -66,6 +66,17 @@ public class NotificationController {
         );
     }
 
+            @PostMapping("/reactivation-request")
+            public ResponseEntity<Notification> createReactivationRequest(@RequestBody Map<String, String> request) {
+            return ResponseEntity.ok(
+                notificationService.createReactivationRequestNotification(
+                    request.get("userId"),
+                    request.get("userCode"),
+                    request.get("fullName")
+                )
+            );
+            }
+
     @PostMapping("/admin/broadcast")
     public ResponseEntity<List<Notification>> createAdminBroadcast(
             @RequestBody AdminNotificationCreateRequest request

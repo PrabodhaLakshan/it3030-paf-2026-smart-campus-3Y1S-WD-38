@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createTechnician, deleteTechnician, deleteUser, getUserManagementSummary } from "../../api/adminUserApi";
+import { createTechnician, deactivateUser, deleteTechnician, deleteUser, getUserManagementSummary, reactivateUser } from "../../api/adminUserApi";
 
 const TECHNICIAN_CATEGORIES = [
   "Electrical",
@@ -30,6 +30,18 @@ const INITIAL_FORM = {
   assignedArea: "",
 };
 
+const DEACTIVATION_OPTIONS = [
+  { value: "UNTIL_REACTIVE", label: "Until reactive" },
+  { value: "1_MIN", label: "1 minute" },
+  { value: "15_MIN", label: "15 minutes" },
+  { value: "30_MIN", label: "30 minutes" },
+  { value: "1_HOUR", label: "1 hour" },
+  { value: "2_HOUR", label: "2 hours" },
+  { value: "1_DAY", label: "1 day" },
+  { value: "5_DAY", label: "5 days" },
+  { value: "1_WEEK", label: "1 week" },
+];
+
 function StatCard({ title, value, accent }) {
   return (
     <div className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur">
@@ -44,6 +56,13 @@ function formatDate(value) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "-";
   return parsed.toLocaleString();
+}
+
+function getAccountStateLabel(user) {
+  if (user?.active === false) {
+    return "Deactivated";
+  }
+  return "Active";
 }
 
 function CategoryChips({ categories }) {
@@ -106,6 +125,8 @@ function AdminUserManagementPage() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState("");
   const [deletingUserId, setDeletingUserId] = useState("");
+  const [deactivatingUserId, setDeactivatingUserId] = useState("");
+  const [reactivatingUserId, setReactivatingUserId] = useState("");
   const [formError, setFormError] = useState("");
 
   const loadSummary = async () => {
@@ -252,6 +273,43 @@ function AdminUserManagementPage() {
     }
   };
 
+  const handleDeactivateUser = async (user, durationOption) => {
+    if (!user?.id || !durationOption) return;
+
+    const optionLabel = DEACTIVATION_OPTIONS.find((item) => item.value === durationOption)?.label || durationOption;
+    const confirmed = window.confirm(`Deactivate ${user.fullName} for ${optionLabel}?`);
+    if (!confirmed) return;
+
+    setDeactivatingUserId(user.id);
+    setError("");
+    try {
+      await deactivateUser(user.id, durationOption);
+      await loadSummary();
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to deactivate user.");
+    } finally {
+      setDeactivatingUserId("");
+    }
+  };
+
+  const handleReactivateUser = async (user) => {
+    if (!user?.id) return;
+
+    const confirmed = window.confirm(`Reactivate ${user.fullName}?`);
+    if (!confirmed) return;
+
+    setReactivatingUserId(user.id);
+    setError("");
+    try {
+      await reactivateUser(user.id);
+      await loadSummary();
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || "Failed to reactivate user.");
+    } finally {
+      setReactivatingUserId("");
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="rounded-3xl border border-slate-200 bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 px-6 py-6 text-white shadow-xl">
@@ -363,7 +421,9 @@ function AdminUserManagementPage() {
                 <th className="px-5 py-3">User ID</th>
                 <th className="px-5 py-3">Full Name</th>
                 <th className="px-5 py-3">Email Address</th>
-                <th className="px-5 py-3">Active</th>
+                <th className="px-5 py-3">Account</th>
+                <th className="px-5 py-3">Banned Until</th>
+                <th className="px-5 py-3">Online</th>
                 <th className="px-5 py-3">Role</th>
                 <th className="px-5 py-3">Registered At</th>
                 <th className="px-5 py-3">Action</th>
@@ -372,13 +432,13 @@ function AdminUserManagementPage() {
             <tbody className="divide-y divide-slate-100 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-slate-500">
+                  <td colSpan={9} className="px-5 py-10 text-center text-slate-500">
                     Loading users...
                   </td>
                 </tr>
               ) : summary.users.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-slate-500">
+                  <td colSpan={9} className="px-5 py-10 text-center text-slate-500">
                     No regular users registered yet.
                   </td>
                 </tr>
@@ -390,6 +450,14 @@ function AdminUserManagementPage() {
                     <td className="px-5 py-4 text-slate-600">{user.email}</td>
                     <td className="px-5 py-4 text-slate-600">
                       <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        user.active === false ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"
+                      }`}>
+                        {getAccountStateLabel(user)}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-slate-600">{formatDate(user.bannedUntil)}</td>
+                    <td className="px-5 py-4 text-slate-600">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
                         user.online ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
                       }`}>
                         {user.online ? "Online" : "Offline"}
@@ -398,14 +466,48 @@ function AdminUserManagementPage() {
                     <td className="px-5 py-4 text-slate-600">{user.role || "USER"}</td>
                     <td className="px-5 py-4 text-slate-600">{formatDate(user.createdAt)}</td>
                     <td className="px-5 py-4">
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteUser(user)}
-                        disabled={deletingUserId === user.id}
-                        className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 transition-all hover:-translate-y-0.5 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {deletingUserId === user.id ? "Removing..." : "Remove"}
-                      </button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <select
+                          defaultValue=""
+                          onChange={(event) => {
+                            const selectedValue = event.target.value;
+                            if (!selectedValue) return;
+                            handleDeactivateUser(user, selectedValue);
+                            event.target.value = "";
+                          }}
+                          disabled={deactivatingUserId === user.id}
+                          className="rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 outline-none transition-all focus:border-amber-300 focus:ring-2 focus:ring-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <option value="" disabled>
+                            {deactivatingUserId === user.id ? "Updating..." : "Deactivate"}
+                          </option>
+                          {DEACTIVATION_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+
+                        {user.active === false && (
+                          <button
+                            type="button"
+                            onClick={() => handleReactivateUser(user)}
+                            disabled={reactivatingUserId === user.id}
+                            className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700 transition-all hover:-translate-y-0.5 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {reactivatingUserId === user.id ? "Reactivating..." : "Reactivate"}
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteUser(user)}
+                          disabled={deletingUserId === user.id}
+                          className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700 transition-all hover:-translate-y-0.5 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {deletingUserId === user.id ? "Removing..." : "Remove"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
