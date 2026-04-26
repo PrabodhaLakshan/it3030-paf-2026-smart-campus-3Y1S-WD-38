@@ -271,7 +271,7 @@ function UserNavbar() {
                   <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                     <p className="text-sm font-semibold text-slate-900">{sessionUser.userName || "User"}</p>
                     <p className="mt-1 text-xs text-slate-600">{sessionUser.userEmail || "No email available"}</p>
-                    <p className="mt-1 text-xs text-slate-500">User ID: {sessionUser.userId || "N/A"}</p>
+                    <p className="mt-1 text-xs text-slate-500">User Code: {sessionUser.userCode || sessionUser.userId || "N/A"}</p>
                     <p className="text-xs text-slate-500">Role: {sessionUser.role || "USER"}</p>
                   </div>
 
