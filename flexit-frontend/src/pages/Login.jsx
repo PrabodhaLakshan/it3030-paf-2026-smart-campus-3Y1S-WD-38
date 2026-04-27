@@ -509,6 +509,31 @@ function Login() {
     }
   };
 
+  const handleGithubLogin = () => {
+    const githubClientId = (import.meta.env.VITE_GITHUB_CLIENT_ID || '').trim();
+    const redirectUri = (
+      import.meta.env.VITE_GITHUB_REDIRECT_URI || `${window.location.origin}/auth/github/callback`
+    ).trim();
+
+    if (!githubClientId) {
+      setError('GitHub Client ID is missing. Please configure VITE_GITHUB_CLIENT_ID.');
+      return;
+    }
+
+    const state =
+      window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    sessionStorage.setItem('github_oauth_state', state);
+
+    const url = new URL('https://github.com/login/oauth/authorize');
+    url.searchParams.set('client_id', githubClientId);
+    url.searchParams.set('redirect_uri', redirectUri);
+    url.searchParams.set('scope', 'read:user user:email');
+    url.searchParams.set('state', state);
+
+    window.location.href = url.toString();
+  };
+
   return (
     <div className="auth-page login-page">
       <div className="auth-container login-layout">
@@ -600,11 +625,17 @@ function Login() {
                 onError={() => setError('Google authentication failed. Please try again.')}
                 text="signin_with"
                 shape="pill"
-                width="320"
+                width="100%"
               />
             </div>
-            <button className="btn-social github">
-              <span>💻</span> GitHub
+            <button type="button" className="btn-social github" onClick={handleGithubLogin}>
+              <svg className="github-logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M12 .297a12 12 0 0 0-3.795 23.385c.6.111.82-.258.82-.577v-2.234c-3.338.726-4.043-1.61-4.043-1.61a3.176 3.176 0 0 0-1.334-1.758c-1.09-.744.083-.729.083-.729a2.52 2.52 0 0 1 1.838 1.237 2.551 2.551 0 0 0 3.49.995 2.55 2.55 0 0 1 .76-1.6c-2.665-.3-5.467-1.334-5.467-5.932a4.64 4.64 0 0 1 1.235-3.219 4.31 4.31 0 0 1 .117-3.176s1.008-.322 3.3 1.23a11.4 11.4 0 0 1 6 0c2.29-1.552 3.297-1.23 3.297-1.23a4.31 4.31 0 0 1 .12 3.176 4.63 4.63 0 0 1 1.233 3.219c0 4.609-2.807 5.628-5.48 5.922a2.86 2.86 0 0 1 .817 2.22v3.293c0 .322.216.694.825.576A12 12 0 0 0 12 .297"
+                />
+              </svg>
+              <span>Continue with GitHub</span>
             </button>
           </div>
 

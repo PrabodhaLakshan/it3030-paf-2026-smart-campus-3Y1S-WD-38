@@ -16,6 +16,11 @@ export const googleLogin = async (payload) => {
   return response.data;
 };
 
+export const githubLogin = async (payload) => {
+  const response = await axios.post(`${BASE_URL}/github`, payload);
+  return response.data;
+};
+
 export const getPasswordStatus = async (userId) => {
   const response = await axios.get(`${BASE_URL}/password-status/${userId}`);
   return response.data;

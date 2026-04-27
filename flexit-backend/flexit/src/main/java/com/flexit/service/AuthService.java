@@ -3,6 +3,7 @@ package com.flexit.service;
 import com.flexit.dto.AuthResponse;
 import com.flexit.dto.AccountAccessStatusResponse;
 import com.flexit.dto.CreateTechnicianRequest;
+import com.flexit.dto.GithubLoginRequest;
 import com.flexit.dto.GoogleLoginRequest;
 import com.flexit.dto.LoginRequest;
 import com.flexit.dto.PasswordChangeRequest;
@@ -23,13 +24,19 @@ import com.flexit.model.User;
 import com.flexit.model.UserRole;
 import com.flexit.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -44,13 +51,22 @@ public class AuthService {
     private final MongoOperations mongoOperations;
     private final PasswordEncoder passwordEncoder;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
+    private final String githubClientId;
+    private final String githubClientSecret;
+    private final String githubRedirectUri;
 
     public AuthService(UserRepository userRepository,
                        MongoOperations mongoOperations,
-                       @Value("${google.oauth.client-id}") String googleClientId) {
+                       @Value("${google.oauth.client-id}") String googleClientId,
+                       @Value("${github.oauth.client-id}") String githubClientId,
+                       @Value("${github.oauth.client-secret}") String githubClientSecret,
+                       @Value("${github.oauth.redirect-uri}") String githubRedirectUri) {
         this.userRepository = userRepository;
         this.mongoOperations = mongoOperations;
         this.passwordEncoder = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+        this.githubClientId = githubClientId;
+        this.githubClientSecret = githubClientSecret;
+        this.githubRedirectUri = githubRedirectUri;
         this.googleIdTokenVerifier = 
         new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(),
@@ -167,6 +183,37 @@ public class AuthService {
             user.getPasswordHash() != null && !user.getPasswordHash().isBlank(),
             user.isActive(),
             user.getBannedUntil()
+        );
+    }
+
+    public AuthResponse githubLogin(GithubLoginRequest request) {
+        String accessToken = exchangeGithubCode(request.getCode());
+        GithubUserProfile profile = fetchGithubUserProfile(accessToken);
+        String normalizedEmail = resolveGithubEmail(accessToken, profile);
+        String fullName = extractGithubFullName(profile, normalizedEmail);
+
+        User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
+                .orElseGet(() -> createGithubUser(normalizedEmail, fullName));
+
+        applyAutoReactivateIfExpired(user);
+
+        String userCode = ensureUserCode(user);
+        UserRole role = resolveRole(user);
+
+        user.setOnline(true);
+        user.setLastSeenAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        return new AuthResponse(
+                "GitHub login successful",
+                user.getId(),
+                userCode,
+                user.getFullName(),
+                user.getEmail(),
+                role.name(),
+                user.getPasswordHash() != null && !user.getPasswordHash().isBlank(),
+                user.isActive(),
+                user.getBannedUntil()
         );
     }
 
@@ -485,6 +532,138 @@ public class AuthService {
         user.setLastSeenAt(LocalDateTime.now());
         user.setCreatedAt(LocalDateTime.now());
         return userRepository.save(user);
+    }
+
+    private String exchangeGithubCode(String code) {
+        String safeCode = Objects.requireNonNullElse(code, "").trim();
+        if (safeCode.isBlank()) {
+            throw new InvalidCredentialsException("GitHub authorization code is required");
+        }
+
+        try {
+            RestClient restClient = RestClient.create();
+            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+            form.add("client_id", githubClientId);
+            form.add("client_secret", githubClientSecret);
+            form.add("code", safeCode);
+            form.add("redirect_uri", githubRedirectUri);
+
+            GithubAccessTokenResponse response = restClient.post()
+                    .uri("https://github.com/login/oauth/access_token")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                    .body(form)
+                    .retrieve()
+                    .body(GithubAccessTokenResponse.class);
+
+            if (response == null || response.accessToken() == null || response.accessToken().isBlank()) {
+                throw new InvalidCredentialsException("GitHub token exchange failed");
+            }
+
+            return response.accessToken().trim();
+        } catch (InvalidCredentialsException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new InvalidCredentialsException("GitHub authentication failed");
+        }
+    }
+
+    private GithubUserProfile fetchGithubUserProfile(String accessToken) {
+        try {
+            RestClient restClient = RestClient.create();
+            GithubUserProfile profile = restClient.get()
+                    .uri("https://api.github.com/user")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .header(HttpHeaders.ACCEPT, "application/vnd.github+json")
+                    .retrieve()
+                    .body(GithubUserProfile.class);
+
+            if (profile == null) {
+                throw new InvalidCredentialsException("Unable to fetch GitHub profile");
+            }
+
+            return profile;
+        } catch (InvalidCredentialsException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new InvalidCredentialsException("Unable to fetch GitHub profile");
+        }
+    }
+
+    private String resolveGithubEmail(String accessToken, GithubUserProfile profile) {
+        if (profile.email() != null && !profile.email().isBlank()) {
+            return profile.email().trim().toLowerCase();
+        }
+
+        try {
+            RestClient restClient = RestClient.create();
+            List<GithubEmailRecord> emails = restClient.get()
+                    .uri("https://api.github.com/user/emails")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .header(HttpHeaders.ACCEPT, "application/vnd.github+json")
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<GithubEmailRecord>>() {});
+
+            if (emails == null || emails.isEmpty()) {
+                throw new InvalidCredentialsException("GitHub account email is not available");
+            }
+
+            return emails.stream()
+                    .filter(email -> email.verified() != null && email.verified())
+                    .filter(email -> email.email() != null && !email.email().isBlank())
+                    .sorted((a, b) -> Boolean.compare(Boolean.TRUE.equals(b.primary()), Boolean.TRUE.equals(a.primary())))
+                    .map(email -> email.email().trim().toLowerCase())
+                    .findFirst()
+                    .orElseThrow(() -> new InvalidCredentialsException("GitHub account email is not verified"));
+        } catch (InvalidCredentialsException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new InvalidCredentialsException("GitHub account email lookup failed");
+        }
+    }
+
+    private String extractGithubFullName(GithubUserProfile profile, String fallbackEmail) {
+        if (profile.name() != null && !profile.name().isBlank()) {
+            return profile.name().trim();
+        }
+
+        if (profile.login() != null && !profile.login().isBlank()) {
+            return profile.login().trim();
+        }
+
+        int atIndex = fallbackEmail.indexOf('@');
+        if (atIndex > 0) {
+            return fallbackEmail.substring(0, atIndex);
+        }
+
+        return "GitHub User";
+    }
+
+    private User createGithubUser(String normalizedEmail, String fullName) {
+        User user = new User();
+        user.setFullName(fullName);
+        user.setEmail(normalizedEmail);
+        user.setPasswordHash(null);
+        user.setRole(UserRole.USER);
+        user.setUserCode(generateNextUserCode());
+        user.setActive(true);
+        user.setBannedUntil(null);
+        user.setOnline(false);
+        user.setLastSeenAt(LocalDateTime.now());
+        user.setCreatedAt(LocalDateTime.now());
+        return userRepository.save(user);
+    }
+
+    private record GithubAccessTokenResponse(String access_token, String token_type, String scope, String error) {
+        String accessToken() {
+            return access_token;
+        }
+    }
+
+    private record GithubUserProfile(String login, String name, String email) {
+    }
+
+    private record GithubEmailRecord(String email, Boolean primary, Boolean verified) {
     }
 
     private User resolveUserByIdOrCode(String userIdOrCode) {

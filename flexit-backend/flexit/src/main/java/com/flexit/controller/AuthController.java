@@ -3,6 +3,7 @@ package com.flexit.controller;
 import com.flexit.dto.AuthResponse;
 import com.flexit.dto.AccountAccessStatusResponse;
 import com.flexit.dto.CreateTechnicianRequest;
+import com.flexit.dto.GithubLoginRequest;
 import com.flexit.dto.GoogleLoginRequest;
 import com.flexit.dto.LoginRequest;
 import com.flexit.dto.PasswordChangeRequest;
@@ -49,6 +50,11 @@ public class AuthController {
     @PostMapping("/google")
     public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
         return ResponseEntity.ok(authService.googleLogin(request));
+    }
+
+    @PostMapping("/github")
+    public ResponseEntity<AuthResponse> githubLogin(@Valid @RequestBody GithubLoginRequest request) {
+        return ResponseEntity.ok(authService.githubLogin(request));
     }
 
     @GetMapping("/password-status/{userId}")

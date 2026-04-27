@@ -268,6 +268,26 @@
   background: rgba(91, 217, 0, 0.15);
 }
 
+.btn-social.github {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #1f2937;
+  font-weight: 500;
+  gap: 0.625rem;
+}
+
+.btn-social.github:hover {
+  border-color: #9ca3af;
+  background: #f8fafc;
+  color: #111827;
+}
+
+.github-logo {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 /* Google OAuth Component Styling */
 .social-login :global(.google_btn) {
   backdrop-filter: blur(8px) !important;

@@ -5,6 +5,7 @@ import UserLayout from "../layouts/UserLayout";
 import TechnicianLayout from "../layouts/TechnicianLayout";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
+import GithubCallbackPage from "../pages/auth/GithubCallbackPage";
 import AdminDashboard from "../pages/admin_dashboard/admin_dashboard";
 import AdminNotificationsPage from "../pages/admin_dashboard/AdminNotificationsPage";
 import AdminUserManagementPage from "../pages/admin_users/AdminUserManagementPage";
@@ -82,6 +83,7 @@ function AppRoutes() {
         <Route path="/Home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/auth/github/callback" element={<GithubCallbackPage />} />
         <Route path="/report-ticket" element={<PublicCreateTicketPage />} />
         <Route path="/report-ticket/manage/:id" element={<TicketEditPage />} />
 
